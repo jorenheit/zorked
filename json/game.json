@@ -1,0 +1,13 @@
+{
+    "files": {
+	"dictionary": "dict.json",
+	"items": "items.json",
+	"locations": "loc.json",
+	"world": "world.json",
+	"player": "player.json"
+    },
+
+    "settings": {
+	"ngram-size": 4
+    }
+}

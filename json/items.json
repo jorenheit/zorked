@@ -1,0 +1,10 @@
+{
+    "coin": {
+	"label": "Coin",
+	"description": "A golden coin",
+	"properties": {
+	    "portable": true,
+	    "weight": 0
+	}
+    }
+}

@@ -1,0 +1,132 @@
+{
+    "living_room": {
+	"label": "Living Room",
+	"description": "You are standing in a small living room.",
+	"items": {
+	    "door": {
+		"label": "Bedroom Door",
+		"description": "There is a door to the north and a door to the south. The north door seems to be locked.",
+		"portable": false,
+		"state": { "locked": true },
+		"interactions": {
+		    "unlock": {
+			"commands": ["open", "unlock"],
+			"tools": ["key"],
+			"state": { "locked": false },
+			"fail": "You need a key to unlock the door.",
+			"success": "The key fits and unlocks the door."
+		    },
+		    "force": {
+			"commands": ["kick", "force", "punch"],
+			"success": "The door won't budge. You really need that key."
+		    }
+		}
+	    }
+	}
+    },
+
+    "kitchen": {
+	"label": "Kitchen",
+	"description": "The kitchen is dirty, there are dishes everywhere and it smells like rotten eggs. You see footsteps leading to and from a drawer.",
+	"state": { "dirty": true },
+	"items": {
+	    "jar" : {
+		"label": "Glass Jar",
+		"description": "A brittle glass jar. It has something inside.",
+		"state": { "broken": false },
+		"portable": true,
+		"weight": 1.0,
+		"items": {
+		    "special-coin": {
+			"nouns": ["coin"],
+			"adjectives": ["special"],
+			"label": "Special Coin",
+			"description": "A weird coin.",
+			"portable": true,
+			"weight": 0.0,
+			"take-condition": {
+			    "jar.is.broken": false,
+			    "fail": "You can't reach it."
+			}
+		    }
+		},
+		"interactions": {
+		    "break": {
+			"label": "Broken Glass Jar",
+			"description": "A bunch of broken pieces of glass. Watch out, you might get hurt.",
+			"broken": true
+		    }
+		}
+	    },
+	    "knife1": {
+		"nouns": ["knife"],
+		"label": "Knife",
+		"description": "A surprisingly sharp butter knife.",
+		"portable": true,
+		"weight": 1.0
+	    },
+
+	    "mop": {
+		"label": "Mop",
+		"description": "A mop that can be used for cleaning.",
+		"portable": true,
+		"weight": 3.0
+	    },
+
+	    "trash-bag": {
+		"nouns": ["bag", "trash"],
+		"adjectives": ["trash"],
+		"label": "Trash Bag",
+		"description": "An empty trash bag.",
+		"portable": true,
+		"weight": 1.0
+	    },
+
+	    "coin_stash": {
+		"id": "coin",
+		"amount": 5
+	    },
+
+	    "drawer": {
+		"label": "Drawer",
+		"description": "A kitchen drawer is still ajar.",
+		"inspect": "There is something shiny in drawer.",
+		"portable": false,
+		"items": {
+		    "key1": {
+			"label": "Key",
+			"description": "An old rusty key that looks like it could fit the internal doors.",
+			"nouns": ["key"],
+			"adjectives": ["old", "rusty"],
+			"inspect": "The key seems to contain another, smaller, key.",
+			"portable": true,
+			"weight": 0.0,
+			"items": {
+			    "minikey": {
+				"label": "Minikey",
+				"description": "A miniature key hidden inside the bigger key.",
+				"portable": true,
+				"weight": 0.0
+			    }
+			}
+		    },
+		    "key2": {
+			"label": "Key",
+			"nouns": ["key"],
+			"adjectives": ["new", "shiny"],
+			"description": "A new key that fits in you bum.",
+			"portable": true,
+			"weight": 0.0
+		    }
+		    
+		}
+	    }
+	}
+    },
+
+    "bedroom": {
+	"label": "Bedroom",
+	"description": "A messy bedroom that has been recently slept in, judging by the smell.",
+	"state": { "dirty": true }
+    }
+}

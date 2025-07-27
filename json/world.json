@@ -1,0 +1,22 @@
+{
+    "start": "living_room",
+
+    "connections": [
+	{
+	    "from": "living_room",
+	    "direction": "north",
+	    "to": "bedroom",
+	    "move-condition": {
+		"player.has.key1": true,
+		"fail": "The door is locked."
+	    },
+	    "symmetric": true
+	},
+	{
+	    "from": "living_room",
+	    "direction": "south",
+	    "to": "kitchen",
+	    "symmetric": true
+	}
+    ]
+}

@@ -1,0 +1,30 @@
+{
+    "player": {
+	"label": "Jason",
+	"health": 100.0,
+	"items": {
+	    "key2": {
+		"label": "Key",
+		"description": "Weird key",
+		"properties": {
+		    "portable": true,
+		    "weight": 1
+		}
+	    },
+	    
+	    "note": {
+		"label": "Note",
+		"description": "A folded up note. It says: \"Don't forget! xoxo Mom\".",
+		"properties": {
+		    "portable": true,
+		    "weight": 0
+		},
+		"interactions": {
+		    "read": {
+			"success": "You open up the note. It says: \"You need to clean the house today. Do it this time or else!\""
+		    }
+		}
+	    }
+	}
+    }
+}
