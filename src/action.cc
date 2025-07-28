@@ -17,12 +17,12 @@ std::string Move::exec() const {
   if (not location)
     return "You can't go there.";
   
-  if (not condition())
-    return condition.failString();
+  if (not condition->eval())
+    return condition->failString();
   
   location->clearMoveCondition(_dir);
   Game::g_player->setLocation(location);
-  return condition.successString();
+  return condition->successString();
 }
 
 namespace Impl {
@@ -100,7 +100,7 @@ std::string Take::exec() const {
 
 	auto [result, str] = targetItem->checkTakeCondition();
 	if (result) {
-	  targetItem->clearTakeCondition();
+	  targetItem->clearTakeCondition(); // TODO: add "persistent" field to condition -> determines if cleared after success
 	  enclosingItem->removeItem(targetItem);
 	  Game::g_player->addItem(targetItem);
 	  if (str.empty())
@@ -149,5 +149,25 @@ std::string Drop::exec() const {
 }
 
 
+// TODO: factor out inventory showing (should be the same as showing "inventory" of a location maybe).
+std::string ShowInventory::exec() const {
+  auto const &items  = Game::g_player->items();
+  if (items.empty()) {
+    return "You don't have any items on you.";
+  }
+  
+  std::string result;
+  for (auto const &item: items) {
+    result += item->description() + "\n";
+  }
+  return result;
+}
 
+std::string Save::exec() const {
+  return "SAVING";
+}
+
+std::string Load::exec() const {
+  return "LOADING";
+}
 

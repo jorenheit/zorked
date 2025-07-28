@@ -2,9 +2,15 @@
     "player": {
 	"label": "Jason",
 	"health": 100.0,
+	"state": {
+	    "alive": true,
+	    "dead": false
+	},
 	"items": {
-	    "key2": {
+	    "key3": {
 		"label": "Key",
+		"nouns": ["key"],
+		"adjectives": ["weird"],
 		"description": "Weird key",
 		"properties": {
 		    "portable": true,

@@ -5,6 +5,9 @@
 [ ] interactions
 [ ] help
 [ ] save/load
+    [x] serializer
+    [x] deserializer
+    [ ] commands
 [ ] quit
 [ ] narration refactor
 [ ] narration style
@@ -14,3 +17,9 @@
 [ ] introduction narration support
 [ ] item classes
     [ ] Conditions of form [object].is.[class]
+[ ] persistent conditions -> do not clear after being fulfilled    
+
+BUGS
+[x] clearing move-condition is not symmetric yet
+[x] clearing condition leads to bad function call -> default std::function is not callable.
+[ ] starting room is not set to visited

@@ -4,7 +4,8 @@
 	"items": "items.json",
 	"locations": "loc.json",
 	"world": "world.json",
-	"player": "player.json"
+	"player": "player.json",
+	"save": "savefile.json"
     },
 
     "settings": {

@@ -12,20 +12,33 @@
 #include "jsonobject.h"
 
 class Location: public ZObject {
-  std::array<std::pair<std::shared_ptr<Location>, Condition>, NumDir> _connections;
+  using Connection =  std::pair<std::shared_ptr<Location>,
+				std::shared_ptr<Condition>>;
+  std::array<Connection, NumDir> _connections;
   bool _visited = false;
   
 public:
   Location(ZObject const &zObj);
-  void connect(Direction dir, std::shared_ptr<Location> loc, Condition const &cond = {});
-  std::pair<std::shared_ptr<Location>, Condition> connected(Direction dir);  
+  void connect(Direction dir, std::shared_ptr<Location> loc, std::shared_ptr<Condition> = {});
+  Connection connected(Direction dir);  
   void visit();
   void reset();  
   bool visited() const;
   void clearMoveCondition(Direction dir);
   
   static std::shared_ptr<Location> construct(std::string const &id, JSONObject const &jsonObj);
+  void to_json(json &jsonObj) const;
+  bool restore(json const &jsonObj);
 };
+
+inline void to_json(json &jsonObj, Location const &loc) {
+  loc.to_json(jsonObj);
+}
+
+inline void to_json(json &jsonObj, std::shared_ptr<Location> ptr) {
+  jsonObj = ptr->id();
+}
+
 
 
 

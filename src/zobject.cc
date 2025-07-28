@@ -1,5 +1,7 @@
 #include "zobject.h"
+#include "item.h"
 #include "util.h"
+#include "game.h"
 
 std::shared_ptr<ZObject> ZObject::construct(std::string const &id, JSONObject const &jsonObj) {
   auto label = jsonObj.get<std::string>("label");
@@ -49,7 +51,12 @@ std::vector<std::string> const &ZObject::nouns() const {
 std::vector<std::shared_ptr<Item>> const &ZObject::items() const {
   return _items;
 }
-  
+
+
+std::unordered_map<std::string, bool> const &ZObject::state() const {
+  return _state;
+}
+
 void ZObject::addItem(std::shared_ptr<Item> item) {
   _items.push_back(item);
 }
@@ -70,12 +77,33 @@ size_t ZObject::contains(std::shared_ptr<Item> item) const {
 }
 
 bool ZObject::getState(std::string const &stateStr) const {
-  for (auto const &[str, val]: _state) {
-    if (str == stateStr) return val;
-  }
-  return false;
+  if (not _state.contains(stateStr))
+    return false;
+
+  return _state.at(stateStr);
 }
 
 void ZObject::setState(std::string const &stateStr, bool value) {
   _state[stateStr] = value;
+}
+
+bool ZObject::restore(json const &jsonObj) {
+  _items.clear();
+
+  for (std::string const &id: jsonObj.at("items").get<std::vector<std::string>>()) {
+    std::shared_ptr<Item> ptr = Game::commonItemByID(id);
+    if (ptr) {
+      addItem(ptr);
+      continue;
+    }
+    ptr = Game::localItemByID(id);
+    if (ptr) {
+      addItem(ptr);
+      continue;
+    }
+    return false;
+  }
+
+  _state = jsonObj.at("state");
+  return true;
 }

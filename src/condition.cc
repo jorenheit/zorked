@@ -3,7 +3,9 @@
 #include "game.h"
 
 // Default condition: always returns true
-Condition::Condition() {
+Condition::Condition():
+  _empty(true)
+{
   _check = [&]() -> bool {
     return true;
   };
@@ -33,7 +35,8 @@ Condition::Condition(ComparisonType comp, std::shared_ptr<ZObject> target, std::
 Condition::Condition(std::shared_ptr<ZObject> target, std::string const &state, bool value,
 		     std::string const &failMsg, std::string const &successMsg):
   _fail(failMsg),
-  _success(successMsg)
+  _success(successMsg),
+  _empty(false)
 {
   _check = [=]() -> bool {
     return target->getState(state) == value;
@@ -41,10 +44,11 @@ Condition::Condition(std::shared_ptr<ZObject> target, std::string const &state, 
 }
 
 // Compound conditions, strung together by AND or OR.
-Condition::Condition(LogicType op, std::vector<Condition> operands,
+Condition::Condition(LogicType op, std::vector<std::shared_ptr<Condition>> operands,
 		     std::string const &failMsg, std::string const &successMsg):
   _fail(failMsg),
-  _success(successMsg)
+  _success(successMsg),
+  _empty(false)
 {
   _check = [=]() -> bool {
     static std::function<bool(bool,bool)> logicFunc[] = {
@@ -53,20 +57,20 @@ Condition::Condition(LogicType op, std::vector<Condition> operands,
       /* Xor */ [](bool a, bool b) { return a ^ b;  }
     };
 
-    bool value = operands[0]();
+    bool value = operands[0]->eval();
     for (size_t idx = 1; idx != operands.size(); ++idx) {
-      value = logicFunc[op](value, operands[idx]());
+      value = logicFunc[op](value, operands[idx]->eval());
     }
     return value;
   };
 }
-  
-  
-bool Condition::operator()() const {
-  return _check();
-}
 
-Condition Condition::construct(JSONObject const &condObj) {
+void Condition::clear() {
+  _check = [](){ return true; };
+  _empty = true;
+}
+  
+std::shared_ptr<Condition> Condition::construct(JSONObject const &condObj) {
   // The conditional node is either:
   // 1. A key/value pair 
   // 2. A logical expression composed of an operator and multiple other nodes
@@ -74,18 +78,18 @@ Condition Condition::construct(JSONObject const &condObj) {
   auto fail = condObj.getOrDefault<std::string>("fail");
   auto success = condObj.getOrDefault<std::string>("success");
   
-  std::vector<Condition> result;
+  std::vector<std::shared_ptr<Condition>> result;
   for (auto const &[key, value]: condObj) {
     if (key == "fail") continue;
     if (key == "success") continue;
     
     LogicType op = logicOperatorFromString(key);
     if (op != NumOp) {
-      std::vector<Condition> array;
+      std::vector<std::shared_ptr<Condition>> array;
       for (auto const &[idx, jsonObj]: value) {
 	array.push_back(Condition::construct(jsonObj));
       }
-      result.emplace_back(op, array);
+      result.emplace_back(std::make_shared<Condition>(op, array));
       continue;
     }
 
@@ -102,7 +106,7 @@ Condition Condition::construct(JSONObject const &condObj) {
     }
       
     if (vec[1] == "is") {
-      result.emplace_back(zObj, vec[2], value.get<bool>());
+      result.emplace_back(std::make_shared<Condition>(zObj, vec[2], value.get<bool>()));
       continue;
     }
 
@@ -113,12 +117,12 @@ Condition Condition::construct(JSONObject const &condObj) {
       }
 
       if (value.is_boolean()) {
-	result.emplace_back(value.get<bool>() ? Greater : Equal, zObj, zObj2, 0);
+	result.emplace_back(std::make_shared<Condition>(value.get<bool>() ? Greater : Equal, zObj, zObj2, 0));
 	continue;
       }
 
       if (value.is_number()) {
-	result.emplace_back(GreaterOrEqual, zObj, zObj2, value.get<size_t>());
+	result.emplace_back(std::make_shared<Condition>(GreaterOrEqual, zObj, zObj2, value.get<size_t>()));
 	continue;
       }
       
@@ -131,7 +135,7 @@ Condition Condition::construct(JSONObject const &condObj) {
 	  throw Exception::SpecificFormatError(value.path(), value.trace(),
 					       "Invalid comparison operator '", compStr, "'; must be one of {=,<,>,<=,>=,!=}.");
 	}
-	result.emplace_back(comp, zObj, zObj2, count);
+	result.emplace_back(std::make_shared<Condition>(comp, zObj, zObj2, count));
 	continue;
       }
 
@@ -144,7 +148,9 @@ Condition Condition::construct(JSONObject const &condObj) {
 					 "Condition may only contain 'is' or 'has', got '", vec[1], "'.");
   }
 
-  return result.empty() ? Condition{} : Condition{And, result, fail, success};
+  return result.empty()
+    ? std::make_shared<Condition>()
+    : std::make_shared<Condition>(And, result, fail, success);
 }
 
 static constexpr std::string const comparisonOperatorStrings[Condition::NumComp] = {
@@ -186,3 +192,4 @@ Condition::LogicType Condition::logicOperatorFromString(std::string const &str) 
 std::string Condition::logicOperatorToString(LogicType op) {
   return logicOperatorStrings[op];
 }
+

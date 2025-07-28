@@ -448,13 +448,17 @@ namespace yy {
     MOVE = 258,                    // MOVE
     TAKE = 259,                    // TAKE
     DROP = 260,                    // DROP
-    FROM = 261,                    // FROM
-    DIRECTION = 262,               // DIRECTION
-    VERB = 263,                    // VERB
-    NOUN = 264,                    // NOUN
-    ADJECTIVE = 265,               // ADJECTIVE
-    UNKNOWN = 266,                 // UNKNOWN
-    END = 267                      // END
+    INV = 261,                     // INV
+    INSPECT = 262,                 // INSPECT
+    SAVE = 263,                    // SAVE
+    LOAD = 264,                    // LOAD
+    FROM = 265,                    // FROM
+    DIRECTION = 266,               // DIRECTION
+    VERB = 267,                    // VERB
+    NOUN = 268,                    // NOUN
+    ADJECTIVE = 269,               // ADJECTIVE
+    UNKNOWN = 270,                 // UNKNOWN
+    END = 271                      // END
       };
       /// Backward compatibility alias (Bison 3.6).
       typedef token_kind_type yytokentype;
@@ -471,7 +475,7 @@ namespace yy {
     {
       enum symbol_kind_type
       {
-        YYNTOKENS = 13, ///< Number of tokens.
+        YYNTOKENS = 17, ///< Number of tokens.
         S_YYEMPTY = -2,
         S_YYEOF = 0,                             // "end of file"
         S_YYerror = 1,                           // error
@@ -479,21 +483,26 @@ namespace yy {
         S_MOVE = 3,                              // MOVE
         S_TAKE = 4,                              // TAKE
         S_DROP = 5,                              // DROP
-        S_FROM = 6,                              // FROM
-        S_DIRECTION = 7,                         // DIRECTION
-        S_VERB = 8,                              // VERB
-        S_NOUN = 9,                              // NOUN
-        S_ADJECTIVE = 10,                        // ADJECTIVE
-        S_UNKNOWN = 11,                          // UNKNOWN
-        S_END = 12,                              // END
-        S_YYACCEPT = 13,                         // $accept
-        S_input = 14,                            // input
-        S_command = 15,                          // command
-        S_move_command = 16,                     // move_command
-        S_take_command = 17,                     // take_command
-        S_drop_command = 18,                     // drop_command
-        S_direction = 19,                        // direction
-        S_object = 20                            // object
+        S_INV = 6,                               // INV
+        S_INSPECT = 7,                           // INSPECT
+        S_SAVE = 8,                              // SAVE
+        S_LOAD = 9,                              // LOAD
+        S_FROM = 10,                             // FROM
+        S_DIRECTION = 11,                        // DIRECTION
+        S_VERB = 12,                             // VERB
+        S_NOUN = 13,                             // NOUN
+        S_ADJECTIVE = 14,                        // ADJECTIVE
+        S_UNKNOWN = 15,                          // UNKNOWN
+        S_END = 16,                              // END
+        S_YYACCEPT = 17,                         // $accept
+        S_input = 18,                            // input
+        S_command = 19,                          // command
+        S_move_command = 20,                     // move_command
+        S_take_command = 21,                     // take_command
+        S_drop_command = 22,                     // drop_command
+        S_inventory_command = 23,                // inventory_command
+        S_direction = 24,                        // direction
+        S_object = 25                            // object
       };
     };
 
@@ -914,6 +923,66 @@ switch (yykind)
 #if 201103L <= YY_CPLUSPLUS
       static
       symbol_type
+      make_INV ()
+      {
+        return symbol_type (token::INV);
+      }
+#else
+      static
+      symbol_type
+      make_INV ()
+      {
+        return symbol_type (token::INV);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_INSPECT ()
+      {
+        return symbol_type (token::INSPECT);
+      }
+#else
+      static
+      symbol_type
+      make_INSPECT ()
+      {
+        return symbol_type (token::INSPECT);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_SAVE ()
+      {
+        return symbol_type (token::SAVE);
+      }
+#else
+      static
+      symbol_type
+      make_SAVE ()
+      {
+        return symbol_type (token::SAVE);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_LOAD ()
+      {
+        return symbol_type (token::LOAD);
+      }
+#else
+      static
+      symbol_type
+      make_LOAD ()
+      {
+        return symbol_type (token::LOAD);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
       make_FROM ()
       {
         return symbol_type (token::FROM);
@@ -1320,9 +1389,9 @@ switch (yykind)
     /// Constants.
     enum
     {
-      yylast_ = 19,     ///< Last index in yytable_.
-      yynnts_ = 8,  ///< Number of nonterminal symbols.
-      yyfinal_ = 18 ///< Termination state number.
+      yylast_ = 25,     ///< Last index in yytable_.
+      yynnts_ = 9,  ///< Number of nonterminal symbols.
+      yyfinal_ = 24 ///< Termination state number.
     };
 
 
@@ -1365,10 +1434,11 @@ switch (yykind)
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
-       5,     6,     7,     8,     9,    10,    11,    12
+       5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
+      15,    16
     };
     // Last valid token kind.
-    const int code_max = 267;
+    const int code_max = 271;
 
     if (t <= 0)
       return symbol_kind::S_YYEOF;
@@ -1528,7 +1598,7 @@ switch (yykind)
 
 
 } // yy
-#line 1532 "parserbase.h"
+#line 1602 "parserbase.h"
 
 
 

@@ -59,6 +59,10 @@ ParserBase::symbol_type Parser::yylex() {
     if (token.str == "move") return ParserBase::make_MOVE();
     if (token.str == "take") return ParserBase::make_TAKE();
     if (token.str == "drop") return ParserBase::make_DROP();
+    if (token.str == "inventory") return ParserBase::make_INV();
+    if (token.str == "inspect") return ParserBase::make_INSPECT();
+    if (token.str == "save") return ParserBase::make_SAVE();
+    if (token.str == "load") return ParserBase::make_LOAD();
     UNREACHABLE("unimplemented command");
   }
   default: UNREACHABLE("default");

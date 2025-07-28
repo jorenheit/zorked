@@ -12,7 +12,7 @@ int main() {
 
     
   } catch (Exception::ExceptionBase &ex) {
-    std::cerr << ex.what() << '\n';
+    std::cerr << ex.ExceptionBase::what() << '\n';
   } catch (Exception::JSONFormatError &ex) {
     std::cerr << ex.JSONFormatError::what() << '\n';
   }

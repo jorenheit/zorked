@@ -39,6 +39,19 @@ struct Drop: public Action {
   virtual std::string exec() const override;
 };
 
+struct ShowInventory: public Action {
+  virtual std::string exec() const override;
+};
+
+struct Save: public Action {
+  virtual std::string exec() const override;
+
+};
+
+struct Load: public Action {
+  virtual std::string exec() const override;
+};
+
 template <typename ActionType>
 inline std::string ActionVerb;
 

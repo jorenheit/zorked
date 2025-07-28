@@ -18,6 +18,8 @@ namespace Game {
 
   void load(std::string const &rootFilename);
   void play();
+  void save(std::string const &saveFilename);
+  void restore(std::string const &loadFilename);
 
   std::shared_ptr<ZObject> objectByID(std::string const &id);  
   std::shared_ptr<Item> commonItemByID(std::string const &id);

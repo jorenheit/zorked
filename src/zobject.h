@@ -30,6 +30,7 @@ public:
   std::vector<std::string> const &nouns() const;
 
   std::vector<std::shared_ptr<Item>> const &items() const;
+  std::unordered_map<std::string, bool> const &state() const;
   
   void addItem(std::shared_ptr<Item> item);
   bool removeItem(std::shared_ptr<Item> item);
@@ -37,8 +38,11 @@ public:
   bool getState(std::string const &stateStr) const;
   void setState(std::string const &stateStr, bool value);
 
-
   static std::shared_ptr<ZObject> construct(std::string const &id, JSONObject const &jsonObj);
+
+  bool restore(json const &jsonObj);
 };
+
+
 
 #endif // ZOBJECT_H

@@ -15,12 +15,12 @@ class Item: public ZObject {
   bool _common;
   bool _portable;
   double _weight;
-  Condition _takeCondition;
+  std::shared_ptr<Condition> _takeCondition;
   std::vector<std::string> _adjectives;
   
 public:
-  Item(ZObject const &zObj, bool common, bool portable, double weight, Condition const &cond,
-       std::vector<std::string> const &adjectives);
+  Item(ZObject const &zObj, bool common, bool portable, double weight,
+       std::shared_ptr<Condition> cond, std::vector<std::string> const &adjectives);
 
   bool common() const;
   bool portable() const;
@@ -32,7 +32,18 @@ public:
   void clearTakeCondition();
 
   static std::shared_ptr<Item> construct(std::string const &id, bool common, JSONObject const &obj);
+  void to_json(json &jsonObj) const;
+  bool restore(json const &jsonObj);
 };
+
+inline void to_json(json &jsonObj, Item const &item) {
+  item.to_json(jsonObj);
+}
+
+inline void to_json(json &jsonObj, std::shared_ptr<Item> item) {
+  jsonObj = item->id();
+}
+
 
 
 #endif //ITEM_H

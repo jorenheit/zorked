@@ -14,7 +14,7 @@ std::shared_ptr<Item> Item::construct(std::string const &id, bool common, JSONOb
   auto ptr = ZObject::construct(id, jsonObj);
   bool portable = jsonObj.getOrDefault<bool>("portable", false);
   double weight = jsonObj.getOrDefault<double>("weight", 1.0);
-  Condition cond = Condition::construct(jsonObj.getOrDefault<JSONObject>("take-condition"));
+  auto cond = Condition::construct(jsonObj.getOrDefault<JSONObject>("take-condition"));
 
   std::vector<std::string> adjectives;
   for (auto const &adj: jsonObj.getOrDefault<std::vector<JSONObject>>("adjectives")) {
@@ -25,7 +25,7 @@ std::shared_ptr<Item> Item::construct(std::string const &id, bool common, JSONOb
 }
 
 Item::Item(ZObject const &zObj, bool common, bool portable, double weight,
-	   Condition const &cond, std::vector<std::string> const &adjectives):
+	   std::shared_ptr<Condition> cond, std::vector<std::string> const &adjectives):
   ZObject(zObj),
   _common(common),
   _portable(portable),
@@ -74,11 +74,27 @@ bool Item::match(ItemDescriptor const &descr) const {
 }
 
 void Item::clearTakeCondition() {
-  _takeCondition.clear();
+  _takeCondition->clear();
 }
 
 std::pair<bool, std::string> Item::checkTakeCondition() const {
-  return _takeCondition() 
-    ? std::make_pair(true, _takeCondition.successString())
-    : std::make_pair(false, _takeCondition.failString());
+  return _takeCondition->eval() 
+    ? std::make_pair(true, _takeCondition->successString())
+    : std::make_pair(false, _takeCondition->failString());
+}
+
+void Item::to_json(json &jsonObj) const {
+  jsonObj = json {
+    {"items", ZObject::items()},
+    {"state", ZObject::state()},
+    {"take-cleared", _takeCondition->empty()}
+  };
+}
+
+bool Item::restore(json const &jsonObj) {
+  if (jsonObj.at("take-cleared").get<bool>()) {
+    _takeCondition->clear();
+  }
+  
+  return ZObject::restore(jsonObj);
 }

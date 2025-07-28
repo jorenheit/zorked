@@ -4,11 +4,11 @@
 	"take": ["get", "grab"],
 	"drop": ["put down", "discard", "release"],
 	"look": ["look around"],
-	"inspect": ["examine", "look at"],
+	"inspect": ["examine", "look at", "check", "show"],
 	"inventory": ["items", "inv"],
 	"help": [],
-	"save": [],
-	"load": [],
+	"save": ["save game"],
+	"load": ["load game"],
 	"quit": []
     },
 

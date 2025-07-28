@@ -14,6 +14,7 @@ class Condition {
   std::function<bool()> _check;
   std::string _fail;
   std::string _success;
+  bool _empty = false;
   
 public:
   enum ComparisonType {
@@ -54,17 +55,17 @@ public:
 	    std::string const &failMsg = "",
 	    std::string const &successMsg = "");
 
-  Condition(LogicType op, std::vector<Condition> operands,
+  Condition(LogicType op, std::vector<std::shared_ptr<Condition>> operands,
 	    std::string const &failMsg = "",
 	    std::string const &successMsg = "");
 
-  bool operator()() const;
+  inline bool eval() const { return _check(); }
   inline std::string const &successString() const { return _success; }
-  inline std::string const &failString() const { return _fail; } 
-  inline void clear() { _check = {}; }
+  inline std::string const &failString() const { return _fail; }
+  inline bool empty() const { return _empty; }
+  void clear();
   
-  
-  static Condition construct(JSONObject const &condObj);
+  static std::shared_ptr<Condition> construct(JSONObject const &condObj);
 }; // class Condition
 
 

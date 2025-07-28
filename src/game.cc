@@ -17,7 +17,11 @@ void addCommonItemsRecursively(std::string const &id, JSONObject const &jsonObj)
   }
     
   auto itemPtr = Item::construct(id, true, jsonObj);
-  g_commonItems.insert({itemPtr->id(), itemPtr});
+  auto [_, ok] = g_commonItems.insert({id, itemPtr});
+  if (not ok) {
+    throw Exception::MultipleDefinitions(jsonObj.path(), jsonObj.trace(), id);
+  }
+  
   if (not jsonObj.contains("items")) return;
   for (auto const &[key, value]: jsonObj.get<JSONObject>("items")) {
     addCommonItemsRecursively(key, value);
@@ -26,7 +30,7 @@ void addCommonItemsRecursively(std::string const &id, JSONObject const &jsonObj)
  
 void addLocalItemsRecursively(std::shared_ptr<ZObject> parent, JSONObject const &jsonObj) {
   if (not jsonObj.contains("items")) return;
-  for (auto const &[key, value]: jsonObj.get<JSONObject>("items")) {
+  for (auto const &[id, value]: jsonObj.get<JSONObject>("items")) {
     if (value.contains("id")) {
 	std::shared_ptr<Item> itemPtr = commonItemByID(value.get<std::string>("id"));
 	size_t amount = value.getOrDefault<size_t>("amount", 1);
@@ -40,8 +44,12 @@ void addLocalItemsRecursively(std::shared_ptr<ZObject> parent, JSONObject const 
 	throw Exception::SpecificFormatError(value.path(), value.trace(), "Locally defined object may not have an \"amount\" field.");
       }
 
-      std::shared_ptr<Item> itemPtr = Item::construct(key, false, value);
-      g_localItems.insert({itemPtr->id(), itemPtr});
+      std::shared_ptr<Item> itemPtr = Item::construct(id, false, value);
+      auto [_, ok] = g_localItems.insert({id, itemPtr});
+      if (not ok) {
+	throw Exception::MultipleDefinitions(jsonObj.path(), jsonObj.trace(), id);
+      }
+
       parent->addItem(itemPtr);
       addLocalItemsRecursively(itemPtr, value);
     }
@@ -79,6 +87,7 @@ namespace Game {
 
     g_player = Player::construct(playerData);
     addLocalItemsRecursively(g_player, playerData);
+
     
     // Load common (stateless) items
     std::filesystem::path itemPath = rootPath;
@@ -132,8 +141,7 @@ namespace Game {
 						 fromID, from->connected(dir).first->id());
       }
       
-      Condition cond = Condition::construct(conn.getOrDefault<JSONObject>("move-condition"));
-
+      auto cond = Condition::construct(conn.getOrDefault<JSONObject>("move-condition"));
       from->connect(dir, to, cond);
       if (conn.getOrDefault<bool>("symmetric", true)) {
 	if (to->connected(oppositeDirection(dir)).first) {
@@ -143,6 +151,9 @@ namespace Game {
 	to->connect(oppositeDirection(dir), from, cond);
       }
     }
+
+    save("test.json");
+    restore("test.json");
   }
 
   std::shared_ptr<ZObject> objectByID(std::string const &id) {
@@ -194,6 +205,53 @@ namespace Game {
       else {
 	std::cout << "Wut?\n";
       }
+    }
+  }
+
+  void save(std::string const &saveFilename) {
+    std::ofstream out(saveFilename);
+
+
+    json locations = json::object();
+    for (auto const &[id, ptr]: g_locations) {
+      locations[id] = *ptr;
+    }
+
+    json items = json::object();
+    for (auto const &[id, ptr]: g_localItems) {
+      items[id] = *ptr;
+    }
+
+    json data = {};
+    data["player"] = *g_player;
+    data["items"] = std::move(items);
+    data["locations"] = std::move(locations);
+	 
+    out << data.dump(2) << '\n';
+  }
+
+  void restore(std::string const &saveFilename) {
+    std::ifstream file(saveFilename);
+    if (!file) {
+      throw Exception::ErrorOpeningFile(saveFilename);
+    }
+
+    try {
+      json data = json::parse(file);
+      g_player->restore(data.at("player"));
+      for (auto const &[id, ptr]: g_locations) {
+	if (not ptr->restore(data.at("locations").at(id))) {
+	  throw 0;
+	}
+      }
+      for (auto const &[id, ptr]: g_localItems) {
+	if (not ptr->restore(data.at("items").at(id))) {
+	  throw 0;
+	}
+      }
+    }
+    catch (...) {
+      throw Exception::InvalidSaveFile();
     }
   }
   

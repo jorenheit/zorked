@@ -19,7 +19,7 @@
   void setResult(std::unique_ptr<Action>&&);
 }
 
-%token MOVE TAKE DROP
+%token MOVE TAKE DROP INV INSPECT SAVE LOAD
 %token FROM
 %token <std::string> DIRECTION
 %token <std::string> VERB NOUN ADJECTIVE UNKNOWN 
@@ -41,9 +41,12 @@ input:
   | command END  { setResult(std::move($1)); YYACCEPT; }
 
 command:
-    move_command { $$ = std::move($1); }
-  | take_command { $$ = std::move($1); }
-  | drop_command { $$ = std::move($1); }
+    move_command	{ $$ = std::move($1); }
+  | take_command	{ $$ = std::move($1); }
+  | drop_command	{ $$ = std::move($1); }
+  | inventory_command	{ $$ = std::make_unique<ShowInventory>(); }
+  | SAVE                { $$ = std::make_unique<Save>(); }
+  | LOAD                { $$ = std::make_unique<Load>(); }
 ;
 
 move_command:
@@ -58,6 +61,11 @@ take_command:
 
 drop_command:
     DROP object { $$ = std::make_unique<Drop>($2); }
+;
+
+inventory_command:
+    INV
+  | INSPECT INV
 ;
 
 direction:

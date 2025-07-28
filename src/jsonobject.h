@@ -80,7 +80,7 @@ public:
   template <typename T>
   T get() const {
     assert(JSONObjectType<T>::type == json::type() && "Cannot convert JSONObject to T");
-    return *this;
+    return this->json::get<T>();
   }
 
   template <typename T>
@@ -195,5 +195,5 @@ inline JSONObject parseEntireFile(std::filesystem::path const &filename) {
   // TODO: catch parse exceptions and improve readability
   return JSONObject(json::parse(file), filename);
 }
-  
+
 #endif //JSONOBJECT_H

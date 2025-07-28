@@ -52,6 +52,19 @@ namespace Exception {
     }
   };
 
+  struct MultipleDefinitions: public JSONFormatError {
+    std::string msg;
+    MultipleDefinitions(std::string const &path, std::string const &trace, std::string const &id):
+      JSONFormatError(path, trace)
+    {
+      msg = "Multiple defefinitions of ID '" + id + "'.";
+    }
+    
+    virtual std::string what() const override {
+      return msg;
+    }
+  };
+  
   struct SpecificFormatError: public JSONFormatError {
     std::string msg;
 
@@ -110,6 +123,12 @@ namespace Exception {
 
     virtual std::string what() const override {
       return msg;
+    }
+  };
+
+  struct InvalidSaveFile: ExceptionBase {
+    virtual std::string what() const override {
+      return "Save-file is not compatible with the story-files.";
     }
   };
 
