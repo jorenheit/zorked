@@ -390,10 +390,7 @@ namespace yy {
       // object
       char dummy2[sizeof (ItemDescriptor)];
 
-      // MOVE
-      // TAKE
       // DIRECTION
-      // FROM
       // VERB
       // NOUN
       // ADJECTIVE
@@ -403,6 +400,7 @@ namespace yy {
       // command
       // move_command
       // take_command
+      // drop_command
       char dummy4[sizeof (std::unique_ptr<Action>)];
     };
 
@@ -447,15 +445,16 @@ namespace yy {
     YYEOF = 0,                     // "end of file"
     YYerror = 256,                 // error
     YYUNDEF = 257,                 // "invalid token"
-    END = 258,                     // END
-    MOVE = 259,                    // MOVE
-    TAKE = 260,                    // TAKE
-    DIRECTION = 261,               // DIRECTION
-    FROM = 262,                    // FROM
+    MOVE = 258,                    // MOVE
+    TAKE = 259,                    // TAKE
+    DROP = 260,                    // DROP
+    FROM = 261,                    // FROM
+    DIRECTION = 262,               // DIRECTION
     VERB = 263,                    // VERB
     NOUN = 264,                    // NOUN
     ADJECTIVE = 265,               // ADJECTIVE
-    UNKNOWN = 266                  // UNKNOWN
+    UNKNOWN = 266,                 // UNKNOWN
+    END = 267                      // END
       };
       /// Backward compatibility alias (Bison 3.6).
       typedef token_kind_type yytokentype;
@@ -472,27 +471,29 @@ namespace yy {
     {
       enum symbol_kind_type
       {
-        YYNTOKENS = 12, ///< Number of tokens.
+        YYNTOKENS = 13, ///< Number of tokens.
         S_YYEMPTY = -2,
         S_YYEOF = 0,                             // "end of file"
         S_YYerror = 1,                           // error
         S_YYUNDEF = 2,                           // "invalid token"
-        S_END = 3,                               // END
-        S_MOVE = 4,                              // MOVE
-        S_TAKE = 5,                              // TAKE
-        S_DIRECTION = 6,                         // DIRECTION
-        S_FROM = 7,                              // FROM
+        S_MOVE = 3,                              // MOVE
+        S_TAKE = 4,                              // TAKE
+        S_DROP = 5,                              // DROP
+        S_FROM = 6,                              // FROM
+        S_DIRECTION = 7,                         // DIRECTION
         S_VERB = 8,                              // VERB
         S_NOUN = 9,                              // NOUN
         S_ADJECTIVE = 10,                        // ADJECTIVE
         S_UNKNOWN = 11,                          // UNKNOWN
-        S_YYACCEPT = 12,                         // $accept
-        S_input = 13,                            // input
-        S_command = 14,                          // command
-        S_move_command = 15,                     // move_command
-        S_take_command = 16,                     // take_command
-        S_direction = 17,                        // direction
-        S_object = 18                            // object
+        S_END = 12,                              // END
+        S_YYACCEPT = 13,                         // $accept
+        S_input = 14,                            // input
+        S_command = 15,                          // command
+        S_move_command = 16,                     // move_command
+        S_take_command = 17,                     // take_command
+        S_drop_command = 18,                     // drop_command
+        S_direction = 19,                        // direction
+        S_object = 20                            // object
       };
     };
 
@@ -535,10 +536,7 @@ namespace yy {
         value.move< ItemDescriptor > (std::move (that.value));
         break;
 
-      case symbol_kind::S_MOVE: // MOVE
-      case symbol_kind::S_TAKE: // TAKE
       case symbol_kind::S_DIRECTION: // DIRECTION
-      case symbol_kind::S_FROM: // FROM
       case symbol_kind::S_VERB: // VERB
       case symbol_kind::S_NOUN: // NOUN
       case symbol_kind::S_ADJECTIVE: // ADJECTIVE
@@ -549,6 +547,7 @@ namespace yy {
       case symbol_kind::S_command: // command
       case symbol_kind::S_move_command: // move_command
       case symbol_kind::S_take_command: // take_command
+      case symbol_kind::S_drop_command: // drop_command
         value.move< std::unique_ptr<Action> > (std::move (that.value));
         break;
 
@@ -653,10 +652,7 @@ switch (yykind)
         value.template destroy< ItemDescriptor > ();
         break;
 
-      case symbol_kind::S_MOVE: // MOVE
-      case symbol_kind::S_TAKE: // TAKE
       case symbol_kind::S_DIRECTION: // DIRECTION
-      case symbol_kind::S_FROM: // FROM
       case symbol_kind::S_VERB: // VERB
       case symbol_kind::S_NOUN: // NOUN
       case symbol_kind::S_ADJECTIVE: // ADJECTIVE
@@ -667,6 +663,7 @@ switch (yykind)
       case symbol_kind::S_command: // command
       case symbol_kind::S_move_command: // move_command
       case symbol_kind::S_take_command: // take_command
+      case symbol_kind::S_drop_command: // drop_command
         value.template destroy< std::unique_ptr<Action> > ();
         break;
 
@@ -872,46 +869,61 @@ switch (yykind)
 #if 201103L <= YY_CPLUSPLUS
       static
       symbol_type
-      make_END ()
+      make_MOVE ()
       {
-        return symbol_type (token::END);
+        return symbol_type (token::MOVE);
       }
 #else
       static
       symbol_type
-      make_END ()
+      make_MOVE ()
       {
-        return symbol_type (token::END);
+        return symbol_type (token::MOVE);
       }
 #endif
 #if 201103L <= YY_CPLUSPLUS
       static
       symbol_type
-      make_MOVE (std::string v)
+      make_TAKE ()
       {
-        return symbol_type (token::MOVE, std::move (v));
+        return symbol_type (token::TAKE);
       }
 #else
       static
       symbol_type
-      make_MOVE (const std::string& v)
+      make_TAKE ()
       {
-        return symbol_type (token::MOVE, v);
+        return symbol_type (token::TAKE);
       }
 #endif
 #if 201103L <= YY_CPLUSPLUS
       static
       symbol_type
-      make_TAKE (std::string v)
+      make_DROP ()
       {
-        return symbol_type (token::TAKE, std::move (v));
+        return symbol_type (token::DROP);
       }
 #else
       static
       symbol_type
-      make_TAKE (const std::string& v)
+      make_DROP ()
       {
-        return symbol_type (token::TAKE, v);
+        return symbol_type (token::DROP);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_FROM ()
+      {
+        return symbol_type (token::FROM);
+      }
+#else
+      static
+      symbol_type
+      make_FROM ()
+      {
+        return symbol_type (token::FROM);
       }
 #endif
 #if 201103L <= YY_CPLUSPLUS
@@ -927,21 +939,6 @@ switch (yykind)
       make_DIRECTION (const std::string& v)
       {
         return symbol_type (token::DIRECTION, v);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_FROM (std::string v)
-      {
-        return symbol_type (token::FROM, std::move (v));
-      }
-#else
-      static
-      symbol_type
-      make_FROM (const std::string& v)
-      {
-        return symbol_type (token::FROM, v);
       }
 #endif
 #if 201103L <= YY_CPLUSPLUS
@@ -1002,6 +999,21 @@ switch (yykind)
       make_UNKNOWN (const std::string& v)
       {
         return symbol_type (token::UNKNOWN, v);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_END ()
+      {
+        return symbol_type (token::END);
+      }
+#else
+      static
+      symbol_type
+      make_END ()
+      {
+        return symbol_type (token::END);
       }
 #endif
 
@@ -1308,9 +1320,9 @@ switch (yykind)
     /// Constants.
     enum
     {
-      yylast_ = 14,     ///< Last index in yytable_.
-      yynnts_ = 7,  ///< Number of nonterminal symbols.
-      yyfinal_ = 15 ///< Termination state number.
+      yylast_ = 19,     ///< Last index in yytable_.
+      yynnts_ = 8,  ///< Number of nonterminal symbols.
+      yyfinal_ = 18 ///< Termination state number.
     };
 
 
@@ -1353,10 +1365,10 @@ switch (yykind)
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
-       5,     6,     7,     8,     9,    10,    11
+       5,     6,     7,     8,     9,    10,    11,    12
     };
     // Last valid token kind.
-    const int code_max = 266;
+    const int code_max = 267;
 
     if (t <= 0)
       return symbol_kind::S_YYEOF;
@@ -1382,10 +1394,7 @@ switch (yykind)
         value.copy< ItemDescriptor > (YY_MOVE (that.value));
         break;
 
-      case symbol_kind::S_MOVE: // MOVE
-      case symbol_kind::S_TAKE: // TAKE
       case symbol_kind::S_DIRECTION: // DIRECTION
-      case symbol_kind::S_FROM: // FROM
       case symbol_kind::S_VERB: // VERB
       case symbol_kind::S_NOUN: // NOUN
       case symbol_kind::S_ADJECTIVE: // ADJECTIVE
@@ -1396,6 +1405,7 @@ switch (yykind)
       case symbol_kind::S_command: // command
       case symbol_kind::S_move_command: // move_command
       case symbol_kind::S_take_command: // take_command
+      case symbol_kind::S_drop_command: // drop_command
         value.copy< std::unique_ptr<Action> > (YY_MOVE (that.value));
         break;
 
@@ -1438,10 +1448,7 @@ switch (yykind)
         value.move< ItemDescriptor > (YY_MOVE (s.value));
         break;
 
-      case symbol_kind::S_MOVE: // MOVE
-      case symbol_kind::S_TAKE: // TAKE
       case symbol_kind::S_DIRECTION: // DIRECTION
-      case symbol_kind::S_FROM: // FROM
       case symbol_kind::S_VERB: // VERB
       case symbol_kind::S_NOUN: // NOUN
       case symbol_kind::S_ADJECTIVE: // ADJECTIVE
@@ -1452,6 +1459,7 @@ switch (yykind)
       case symbol_kind::S_command: // command
       case symbol_kind::S_move_command: // move_command
       case symbol_kind::S_take_command: // take_command
+      case symbol_kind::S_drop_command: // drop_command
         value.move< std::unique_ptr<Action> > (YY_MOVE (s.value));
         break;
 
@@ -1520,7 +1528,7 @@ switch (yykind)
 
 
 } // yy
-#line 1524 "parserbase.h"
+#line 1532 "parserbase.h"
 
 
 

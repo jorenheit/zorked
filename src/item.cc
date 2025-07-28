@@ -73,8 +73,8 @@ bool Item::match(ItemDescriptor const &descr) const {
   return true;
 }
 
-void Item::clearCondition() {
-  _takeCondition = Condition{};
+void Item::clearTakeCondition() {
+  _takeCondition.clear();
 }
 
 std::pair<bool, std::string> Item::checkTakeCondition() const {

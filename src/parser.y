@@ -19,17 +19,18 @@
   void setResult(std::unique_ptr<Action>&&);
 }
 
-%token END
-%token <std::string> MOVE TAKE
+%token MOVE TAKE DROP
+%token FROM
 %token <std::string> DIRECTION
-%token <std::string> FROM
 %token <std::string> VERB NOUN ADJECTIVE UNKNOWN 
+%token END
 
 %type <ItemDescriptor>          object
 %type <Direction>               direction
 %type <std::unique_ptr<Action>> command
 %type <std::unique_ptr<Action>> move_command
 %type <std::unique_ptr<Action>> take_command
+%type <std::unique_ptr<Action>> drop_command
 
 %start input
 
@@ -42,6 +43,7 @@ input:
 command:
     move_command { $$ = std::move($1); }
   | take_command { $$ = std::move($1); }
+  | drop_command { $$ = std::move($1); }
 ;
 
 move_command:
@@ -52,6 +54,10 @@ move_command:
 take_command:
     TAKE object		    { $$ = std::make_unique<Take>($2); }
   | TAKE object FROM object { $$ = std::make_unique<Take>($2, $4); }
+;
+
+drop_command:
+    DROP object { $$ = std::make_unique<Drop>($2); }
 ;
 
 direction:

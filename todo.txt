@@ -1,0 +1,16 @@
+[ ] look
+[ ] inspect
+    [ ] "my" -> refer to object in inventory
+[ ] check inventory
+[ ] interactions
+[ ] help
+[ ] save/load
+[ ] quit
+[ ] narration refactor
+[ ] narration style
+[ ] custom error messages for JSON syntax errors
+[ ] better includes (fwd declarations)
+[ ] number parsing
+[ ] introduction narration support
+[ ] item classes
+    [ ] Conditions of form [object].is.[class]

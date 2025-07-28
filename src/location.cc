@@ -16,7 +16,12 @@ void Location::connect(Direction dir, std::shared_ptr<Location> loc, Condition c
 std::pair<std::shared_ptr<Location>, Condition> Location::connected(Direction dir) {
   return _connections[dir];
 }
-  
+
+void Location::clearMoveCondition(Direction dir) {
+  auto [loc, cond] = _connections[dir];
+  if (loc) cond.clear();
+}
+
 void Location::visit() {
   _visited = true;
 }

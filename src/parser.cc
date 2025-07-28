@@ -50,14 +50,15 @@ ParserBase::symbol_type Parser::yylex() {
   case WordType::Verb: return ParserBase::make_VERB(token.str);
   case WordType::Noun: return ParserBase::make_NOUN(token.str);
   case WordType::Preposition: {
-    if (token.str == "from") return ParserBase::make_FROM(token.str);
+    if (token.str == "from") return ParserBase::make_FROM();
     UNREACHABLE("unimplemented preposition");
   }
   case WordType::Adjective: return ParserBase::make_ADJECTIVE(token.str);
   case WordType::Ignored: UNREACHABLE("ignored words survived");
   case WordType::BuiltinCommand: {
-    if (token.str == "move") return ParserBase::make_MOVE(token.str);
-    if (token.str == "take") return ParserBase::make_TAKE(token.str);
+    if (token.str == "move") return ParserBase::make_MOVE();
+    if (token.str == "take") return ParserBase::make_TAKE();
+    if (token.str == "drop") return ParserBase::make_DROP();
     UNREACHABLE("unimplemented command");
   }
   default: UNREACHABLE("default");

@@ -22,7 +22,8 @@ public:
   void visit();
   void reset();  
   bool visited() const;
-
+  void clearMoveCondition(Direction dir);
+  
   static std::shared_ptr<Location> construct(std::string const &id, JSONObject const &jsonObj);
 };
 

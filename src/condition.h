@@ -61,7 +61,9 @@ public:
   bool operator()() const;
   inline std::string const &successString() const { return _success; }
   inline std::string const &failString() const { return _fail; } 
-
+  inline void clear() { _check = {}; }
+  
+  
   static Condition construct(JSONObject const &condObj);
 }; // class Condition
 

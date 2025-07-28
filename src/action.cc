@@ -8,23 +8,24 @@ Move::Move(Direction dir):
   _dir(dir)
 {}
 
+// TODO: factor out default narratives
 std::string Move::exec() const {
   assert(_dir != NumDir && "dir should be valid here");
 
   auto [location, condition] = Game::g_player->getLocation()->connected(_dir);
-    
+
+  if (not location)
+    return "You can't go there.";
+  
   if (not condition())
     return condition.failString();
   
-  if (location) {
-    Game::g_player->setLocation(location);
-    return condition.successString();
-  }
-
-  return "You can't go there."; // TODO: factor out default narratives
+  location->clearMoveCondition(_dir);
+  Game::g_player->setLocation(location);
+  return condition.successString();
 }
 
-namespace TakeImpl {
+namespace Impl {
   struct MultipleItemsByThatNoun {};
 
   template <typename ... Objects>
@@ -37,7 +38,6 @@ namespace TakeImpl {
 	else if (not result->common()) {
 	  throw MultipleItemsByThatNoun{};
 	}
-	// multiple common items, just keep going
       }
     }
     
@@ -51,7 +51,7 @@ namespace TakeImpl {
   std::shared_ptr<Item> findItem(ItemDescriptor const &object, std::shared_ptr<ZObject> first, Objects&& ... rest) {
     return findItemImpl(object, nullptr, first, std::forward<Objects>(rest)...);
   }
-} // namespace TakeImpl
+} // namespace Impl
 
 
 Take::Take(ItemDescriptor const &object, ItemDescriptor const &prepObject):
@@ -59,24 +59,26 @@ Take::Take(ItemDescriptor const &object, ItemDescriptor const &prepObject):
   _prepObject(prepObject)
 {}
 
+
+// TODO: factor out default narration
 std::string Take::exec() const {
   assert(not _object.noun.empty() && "_object should have a value");
 
   if (_prepObject.noun.empty()) {
     try {
-      auto targetItem = TakeImpl::findItem(_object, Game::g_player->getLocation());
+      auto targetItem = Impl::findItem(_object, Game::g_player->getLocation());
       if (!targetItem) {
-	targetItem = TakeImpl::findItem(_object, Game::g_player);
-	// TODO: factor out default narration
+	targetItem = Impl::findItem(_object, Game::g_player);
 	if (targetItem) return "You already have the " + _object.str() + "!";
 	else return "There is no "  + _object.str() + " here.";
       }
 
       auto [result, str] = targetItem->checkTakeCondition();
       if (result) {
+	targetItem->clearTakeCondition();
 	Game::g_player->getLocation()->removeItem(targetItem);
 	Game::g_player->addItem(targetItem);
-	if (str.empty()) return "You took the " + _object.str() + "!"; // TODO: factor out default narration.
+	if (str.empty()) return "You took the " + _object.str() + "!"; 
 	else return str;
       }
       else if (str.empty()) {
@@ -84,20 +86,21 @@ std::string Take::exec() const {
       }
       else return str;
     }
-    catch (TakeImpl::MultipleItemsByThatNoun) {
+    catch (Impl::MultipleItemsByThatNoun) {
       return "Which " + _object.str() + "?";
     }
   }
   else {
     try {
-      auto enclosingItem = TakeImpl::findItem(_prepObject, Game::g_player, Game::g_player->getLocation());
+      auto enclosingItem = Impl::findItem(_prepObject, Game::g_player, Game::g_player->getLocation());
       if (!enclosingItem) return "There is no "  + _prepObject.str() + " here.";
       try {
-	auto targetItem = TakeImpl::findItem(_object, enclosingItem);
+	auto targetItem = Impl::findItem(_object, enclosingItem);
 	if (!targetItem) return "The " + _prepObject.str() + " does not contain a " + _object.str() + ".";
 
 	auto [result, str] = targetItem->checkTakeCondition();
 	if (result) {
+	  targetItem->clearTakeCondition();
 	  enclosingItem->removeItem(targetItem);
 	  Game::g_player->addItem(targetItem);
 	  if (str.empty())
@@ -109,19 +112,41 @@ std::string Take::exec() const {
 	}
 	else return str;
       }
-      catch (TakeImpl::MultipleItemsByThatNoun) {
+      catch (Impl::MultipleItemsByThatNoun) {
 	return "Which " + _object.str() + "?";
       }
     }
-    catch (TakeImpl::MultipleItemsByThatNoun) {
+    catch (Impl::MultipleItemsByThatNoun) {
       return "Which " + _prepObject.str() + "?";
     }
   }
-
   UNREACHABLE();
 }
 
 
+Drop::Drop(ItemDescriptor const &object):
+  _object(object)
+{}
+
+std::string Drop::exec() const {
+  assert(not _object.noun.empty() && "_object should have a value");
+
+  try {
+    auto targetItem = Impl::findItem(_object, Game::g_player);
+    if (!targetItem) {
+      return "You don't have a "  + _object.str() + ".";
+    }
+    else {
+      Game::g_player->removeItem(targetItem);
+      Game::g_player->getLocation()->addItem(targetItem);
+      return "You dropped the " + _object.str() + ".";
+    }
+  }
+  catch (Impl::MultipleItemsByThatNoun) {
+    return "Which " + _object.str() + "?";
+  }
+  UNREACHABLE();
+}
 
 
 

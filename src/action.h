@@ -32,6 +32,13 @@ struct Take: public Action {
   virtual std::string exec() const override;
 };
 
+struct Drop: public Action {
+  ItemDescriptor _object;
+  
+  Drop(ItemDescriptor const &object);
+  virtual std::string exec() const override;
+};
+
 template <typename ActionType>
 inline std::string ActionVerb;
 

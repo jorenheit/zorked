@@ -28,8 +28,8 @@ public:
   std::vector<std::string> const &adjectives() const;
   bool match(ItemDescriptor const &descr) const;
 
-  void clearCondition();
   std::pair<bool, std::string> checkTakeCondition() const;
+  void clearTakeCondition();
 
   static std::shared_ptr<Item> construct(std::string const &id, bool common, JSONObject const &obj);
 };
