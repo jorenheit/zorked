@@ -10,19 +10,22 @@
 
 class Item;
 class Location;
+class Condition;
 
 class ZObject {
   std::string _id;
   std::string _label;
   std::string _description;
   std::vector<std::string> _nouns;
-
+  size_t _inspectConditionIndex;
+  
   std::vector<std::shared_ptr<Item>> _items;
   std::unordered_map<std::string, bool> _state;
   
 public:
   ZObject(std::string const &id, std::string const &label, std::string const &description,
-	  std::vector<std::string> const &nouns, std::unordered_map<std::string, bool> const &state);
+	  std::vector<std::string> const &nouns, std::unordered_map<std::string, bool> const &state,
+	  size_t inspectConditionIndex);
   
   std::string const &id() const;
   std::string const &label() const;
@@ -31,6 +34,8 @@ public:
 
   std::vector<std::shared_ptr<Item>> const &items() const;
   std::unordered_map<std::string, bool> const &state() const;
+
+  std::string inspect();
   
   void addItem(std::shared_ptr<Item> item);
   bool removeItem(std::shared_ptr<Item> item);
@@ -42,7 +47,6 @@ public:
 
   bool restore(json const &jsonObj);
 };
-
 
 
 #endif // ZOBJECT_H

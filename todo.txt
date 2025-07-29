@@ -18,6 +18,8 @@
 [ ] item classes
     [ ] Conditions of form [object].is.[class]
 [ ] persistent conditions -> do not clear after being fulfilled    
+[ ] adjectives could also match state flags (if set to true)
+
 
 BUGS
 [x] clearing move-condition is not symmetric yet

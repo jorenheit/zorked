@@ -3,7 +3,8 @@
 #include "game.h"
 
 // Default condition: always returns true
-Condition::Condition():
+Condition::Condition(std::string const &msg):
+  _success(msg),
   _empty(true)
 {
   _check = [&]() -> bool {
@@ -44,7 +45,7 @@ Condition::Condition(std::shared_ptr<ZObject> target, std::string const &state, 
 }
 
 // Compound conditions, strung together by AND or OR.
-Condition::Condition(LogicType op, std::vector<std::shared_ptr<Condition>> operands,
+Condition::Condition(LogicType op, std::vector<std::shared_ptr<Condition>> const &operands,
 		     std::string const &failMsg, std::string const &successMsg):
   _fail(failMsg),
   _success(successMsg),

@@ -12,17 +12,18 @@ Move::Move(Direction dir):
 std::string Move::exec() const {
   assert(_dir != NumDir && "dir should be valid here");
 
-  auto [location, condition] = Game::g_player->getLocation()->connected(_dir);
+  auto [location, conditionIndex] = Game::g_player->getLocation()->connected(_dir);
 
   if (not location)
     return "You can't go there.";
-  
-  if (not condition->eval())
-    return condition->failString();
+
+  Condition const &condition = Game::g_conditions.get(conditionIndex);
+  if (not condition.eval())
+    return condition.failString();
   
   location->clearMoveCondition(_dir);
   Game::g_player->setLocation(location);
-  return condition->successString();
+  return condition.successString();
 }
 
 namespace Impl {
@@ -148,6 +149,27 @@ std::string Drop::exec() const {
   UNREACHABLE();
 }
 
+Inspect::Inspect(ItemDescriptor const &object):
+  _object(object)
+{}
+
+std::string Inspect::exec() const {
+  assert(not _object.noun.empty() && "_object should have a value");
+
+  try {
+    auto targetItem = Impl::findItem(_object, Game::g_player, Game::g_player->getLocation());
+    if (!targetItem) {
+      return "There is no "  + _object.str() + " here.";
+    }
+    else {
+      return targetItem->inspect();
+    }
+  }
+  catch (Impl::MultipleItemsByThatNoun) {
+    return "Which " + _object.str() + "?";
+  }
+  UNREACHABLE();
+}
 
 // TODO: factor out inventory showing (should be the same as showing "inventory" of a location maybe).
 std::string ShowInventory::exec() const {

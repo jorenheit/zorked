@@ -74,6 +74,7 @@
 	    },
 
 	    "trash-bag": {
+		"inspect": "Just a plain old trash-bag. Empty though.",
 		"nouns": ["bag", "trash"],
 		"adjectives": ["trash"],
 		"label": "Trash Bag",
@@ -90,7 +91,13 @@
 	    "drawer": {
 		"label": "Drawer",
 		"description": "A kitchen drawer is still ajar.",
-		"inspect": "There is something shiny in drawer.",
+		"inspect": {
+		    "inspect-condition": {
+			"drawer.has.key1": true,
+			"success": "There is something shiny in the drawer",			
+			"fail": "The drawer is empty"
+		    }
+		},
 		"portable": false,
 		"items": {
 		    "key1": {
@@ -103,6 +110,8 @@
 			"weight": 0.0,
 			"items": {
 			    "minikey": {
+				"nouns": ["key"],
+				"adjectives": ["small", "tiny"],
 				"label": "Minikey",
 				"description": "A miniature key hidden inside the bigger key.",
 				"portable": true,

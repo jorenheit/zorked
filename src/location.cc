@@ -1,3 +1,4 @@
+#include "game.h"
 #include "location.h"
 #include "item.h"
 #include "util.h"
@@ -10,8 +11,8 @@ Location::Location(ZObject const &zObj):
   ZObject(zObj)
 {}
 
-void Location::connect(Direction dir, std::shared_ptr<Location> loc, std::shared_ptr<Condition> cond) {
-  _connections[dir] = {loc, cond};
+void Location::connect(Direction dir, std::shared_ptr<Location> loc, size_t conditionIndex) {
+  _connections[dir] = {loc, conditionIndex};
 }
 
 Location::Connection Location::connected(Direction dir) {
@@ -19,8 +20,8 @@ Location::Connection Location::connected(Direction dir) {
 }
 
 void Location::clearMoveCondition(Direction dir) {
-  auto [loc, cond] = _connections[dir];
-  if (loc) cond->clear();
+  auto [loc, conditionIndex] = _connections[dir];
+  if (loc) Game::g_conditions.get(conditionIndex).clear();
 }
 
 void Location::visit() {
@@ -46,7 +47,7 @@ void Location::to_json(json &jsonObj) const {
   for (size_t idx = 0; idx != NumDir; ++idx) {
     if (_connections[idx].second) {
       std::string dir = directionToString(static_cast<Direction>(idx));
-      connections[dir] = _connections[idx].second->empty();
+      connections[dir] = Game::g_conditions.get(_connections[idx].second).empty();
     }
   }
   jsonObj["move-cleared"] = std::move(connections);

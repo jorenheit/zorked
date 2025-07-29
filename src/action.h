@@ -39,6 +39,14 @@ struct Drop: public Action {
   virtual std::string exec() const override;
 };
 
+struct Inspect: public Action {
+  ItemDescriptor _object;
+  
+  Inspect(ItemDescriptor const &object);
+  virtual std::string exec() const override;
+};
+
+
 struct ShowInventory: public Action {
   virtual std::string exec() const override;
 };

@@ -41,7 +41,7 @@ public:
   static std::string logicOperatorToString(LogicType op);
 
   
-  Condition();
+  Condition(std::string const &msg = "");
   Condition(ComparisonType comp,
 	    std::shared_ptr<ZObject> target,
 	    std::shared_ptr<Item> item,
@@ -55,7 +55,7 @@ public:
 	    std::string const &failMsg = "",
 	    std::string const &successMsg = "");
 
-  Condition(LogicType op, std::vector<std::shared_ptr<Condition>> operands,
+  Condition(LogicType op, std::vector<std::shared_ptr<Condition>> const &operands,
 	    std::string const &failMsg = "",
 	    std::string const &successMsg = "");
 
@@ -68,6 +68,30 @@ public:
   static std::shared_ptr<Condition> construct(JSONObject const &condObj);
 }; // class Condition
 
+class ConditionManager {
+  std::vector<std::shared_ptr<Condition>> _conditions;
+  std::vector<JSONObject> _conditionProxies;
+  bool _initialized = false;
+    
+public:
+  size_t add(JSONObject const &obj) {
+    _conditionProxies.push_back(obj);
+    return _conditionProxies.size() - 1;
+  }
+
+  Condition &get(size_t index) {
+    assert(_initialized && "Calling get before process.");
+    assert(index < _conditions.size() && "index out of bounds");
+    return *_conditions[index];
+  }
+
+  void process() {
+    for (JSONObject const &jsonObj: _conditionProxies) {
+      _conditions.emplace_back(Condition::construct(jsonObj));
+    }
+    _initialized = true;
+  }
+}; // class ConditionManager
 
 
 #endif // CONDITION_H

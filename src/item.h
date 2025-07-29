@@ -15,12 +15,12 @@ class Item: public ZObject {
   bool _common;
   bool _portable;
   double _weight;
-  std::shared_ptr<Condition> _takeCondition;
+  size_t _takeConditionIndex;
   std::vector<std::string> _adjectives;
-  
+
 public:
   Item(ZObject const &zObj, bool common, bool portable, double weight,
-       std::shared_ptr<Condition> cond, std::vector<std::string> const &adjectives);
+       size_t conditionIndex, std::vector<std::string> const &adjectives);
 
   bool common() const;
   bool portable() const;

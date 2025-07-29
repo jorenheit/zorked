@@ -59,8 +59,9 @@ void addLocalItemsRecursively(std::shared_ptr<ZObject> parent, JSONObject const 
 namespace Game {
 
   Dictionary g_dict;
+  ConditionManager g_conditions;
+
   std::shared_ptr<Player> g_player;
-  
   std::unordered_map<std::string, std::shared_ptr<Location>> g_locations;
   std::unordered_map<std::string, std::shared_ptr<Item>> g_localItems;
   std::unordered_map<std::string, std::shared_ptr<Item>> g_commonItems;
@@ -141,16 +142,19 @@ namespace Game {
 						 fromID, from->connected(dir).first->id());
       }
       
-      auto cond = Condition::construct(conn.getOrDefault<JSONObject>("move-condition"));
-      from->connect(dir, to, cond);
+      size_t conditionIndex = g_conditions.add(conn.getOrDefault<JSONObject>("move-condition"));
+      from->connect(dir, to, conditionIndex);
       if (conn.getOrDefault<bool>("symmetric", true)) {
 	if (to->connected(oppositeDirection(dir)).first) {
 	  throw Exception::DoubleConnectedLocation(conn.path(), conn.trace(),
 						   toID, to->connected(oppositeDirection(dir)).first->id());
 	}
-	to->connect(oppositeDirection(dir), from, cond);
+	to->connect(oppositeDirection(dir), from, conditionIndex);
       }
     }
+
+    // Process condition-proxies
+    g_conditions.process();
   }
 
   std::shared_ptr<ZObject> objectByID(std::string const &id) {

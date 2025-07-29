@@ -1,4 +1,5 @@
 #include "item.h"
+#include "game.h"
 
 std::string ItemDescriptor::str() const {
   std::string result;
@@ -14,23 +15,23 @@ std::shared_ptr<Item> Item::construct(std::string const &id, bool common, JSONOb
   auto ptr = ZObject::construct(id, jsonObj);
   bool portable = jsonObj.getOrDefault<bool>("portable", false);
   double weight = jsonObj.getOrDefault<double>("weight", 1.0);
-  auto cond = Condition::construct(jsonObj.getOrDefault<JSONObject>("take-condition"));
+  size_t conditionIndex = Game::g_conditions.add(jsonObj.getOrDefault<JSONObject>("take-condition"));
 
   std::vector<std::string> adjectives;
   for (auto const &adj: jsonObj.getOrDefault<std::vector<JSONObject>>("adjectives")) {
     adjectives.push_back(adj.get<std::string>());
   }
   
-  return std::make_shared<Item>(*ptr, common, portable, weight, cond, adjectives);
+  return std::make_shared<Item>(*ptr, common, portable, weight, conditionIndex, adjectives);
 }
 
 Item::Item(ZObject const &zObj, bool common, bool portable, double weight,
-	   std::shared_ptr<Condition> cond, std::vector<std::string> const &adjectives):
+	   size_t conditionIndex, std::vector<std::string> const &adjectives):
   ZObject(zObj),
   _common(common),
   _portable(portable),
   _weight(weight),
-  _takeCondition(cond),
+  _takeConditionIndex(conditionIndex),
   _adjectives(adjectives)
 {}
 
@@ -74,26 +75,27 @@ bool Item::match(ItemDescriptor const &descr) const {
 }
 
 void Item::clearTakeCondition() {
-  _takeCondition->clear();
+  Game::g_conditions.get(_takeConditionIndex).clear();
 }
 
 std::pair<bool, std::string> Item::checkTakeCondition() const {
-  return _takeCondition->eval() 
-    ? std::make_pair(true, _takeCondition->successString())
-    : std::make_pair(false, _takeCondition->failString());
+  Condition const &takeCondition = Game::g_conditions.get(_takeConditionIndex);
+  return takeCondition.eval() 
+    ? std::make_pair(true, takeCondition.successString())
+    : std::make_pair(false, takeCondition.failString());
 }
 
 void Item::to_json(json &jsonObj) const {
   jsonObj = json {
     {"items", ZObject::items()},
     {"state", ZObject::state()},
-    {"take-cleared", _takeCondition->empty()}
+    {"take-cleared", Game::g_conditions.get(_takeConditionIndex).empty()}
   };
 }
 
 bool Item::restore(json const &jsonObj) {
   if (jsonObj.at("take-cleared").get<bool>()) {
-    _takeCondition->clear();
+    Game::g_conditions.get(_takeConditionIndex).clear();
   }
   
   return ZObject::restore(jsonObj);

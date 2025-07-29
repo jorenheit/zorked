@@ -403,6 +403,7 @@ namespace yy {
       // move_command
       // take_command
       // drop_command
+      // inspect_command
       char dummy4[sizeof (std::unique_ptr<Action>)];
     };
 
@@ -505,10 +506,11 @@ namespace yy {
         S_take_command = 22,                     // take_command
         S_drop_command = 23,                     // drop_command
         S_inventory_command = 24,                // inventory_command
-        S_direction = 25,                        // direction
-        S_object = 26,                           // object
-        S_object_without_article = 27,           // object_without_article
-        S_modifier = 28                          // modifier
+        S_inspect_command = 25,                  // inspect_command
+        S_direction = 26,                        // direction
+        S_object = 27,                           // object
+        S_object_without_article = 28,           // object_without_article
+        S_modifier = 29                          // modifier
       };
     };
 
@@ -565,6 +567,7 @@ namespace yy {
       case symbol_kind::S_move_command: // move_command
       case symbol_kind::S_take_command: // take_command
       case symbol_kind::S_drop_command: // drop_command
+      case symbol_kind::S_inspect_command: // inspect_command
         value.move< std::unique_ptr<Action> > (std::move (that.value));
         break;
 
@@ -683,6 +686,7 @@ switch (yykind)
       case symbol_kind::S_move_command: // move_command
       case symbol_kind::S_take_command: // take_command
       case symbol_kind::S_drop_command: // drop_command
+      case symbol_kind::S_inspect_command: // inspect_command
         value.template destroy< std::unique_ptr<Action> > ();
         break;
 
@@ -1414,9 +1418,9 @@ switch (yykind)
     /// Constants.
     enum
     {
-      yylast_ = 27,     ///< Last index in yytable_.
-      yynnts_ = 11,  ///< Number of nonterminal symbols.
-      yyfinal_ = 27 ///< Termination state number.
+      yylast_ = 33,     ///< Last index in yytable_.
+      yynnts_ = 12,  ///< Number of nonterminal symbols.
+      yyfinal_ = 29 ///< Termination state number.
     };
 
 
@@ -1503,6 +1507,7 @@ switch (yykind)
       case symbol_kind::S_move_command: // move_command
       case symbol_kind::S_take_command: // take_command
       case symbol_kind::S_drop_command: // drop_command
+      case symbol_kind::S_inspect_command: // inspect_command
         value.copy< std::unique_ptr<Action> > (YY_MOVE (that.value));
         break;
 
@@ -1559,6 +1564,7 @@ switch (yykind)
       case symbol_kind::S_move_command: // move_command
       case symbol_kind::S_take_command: // take_command
       case symbol_kind::S_drop_command: // drop_command
+      case symbol_kind::S_inspect_command: // inspect_command
         value.move< std::unique_ptr<Action> > (YY_MOVE (s.value));
         break;
 
@@ -1627,7 +1633,7 @@ switch (yykind)
 
 
 } // yy
-#line 1631 "parserbase.h"
+#line 1637 "parserbase.h"
 
 
 

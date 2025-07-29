@@ -67,7 +67,7 @@ public:
   {}
     
   inline JSONObject(json const &obj,
-		    std::string const &filename,
+		    std::string const &filename = "",
 		    std::string const &parent = "root"):
     json(obj),
     _path(filename),
