@@ -151,9 +151,6 @@ namespace Game {
 	to->connect(oppositeDirection(dir), from, cond);
       }
     }
-
-    save("test.json");
-    restore("test.json");
   }
 
   std::shared_ptr<ZObject> objectByID(std::string const &id) {

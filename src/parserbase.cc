@@ -192,6 +192,7 @@ namespace yy {
         break;
 
       case symbol_kind::S_object: // object
+      case symbol_kind::S_object_without_article: // object_without_article
         value.YY_MOVE_OR_COPY< ItemDescriptor > (YY_MOVE (that.value));
         break;
 
@@ -200,6 +201,7 @@ namespace yy {
       case symbol_kind::S_NOUN: // NOUN
       case symbol_kind::S_ADJECTIVE: // ADJECTIVE
       case symbol_kind::S_UNKNOWN: // UNKNOWN
+      case symbol_kind::S_modifier: // modifier
         value.YY_MOVE_OR_COPY< std::string > (YY_MOVE (that.value));
         break;
 
@@ -230,6 +232,7 @@ namespace yy {
         break;
 
       case symbol_kind::S_object: // object
+      case symbol_kind::S_object_without_article: // object_without_article
         value.move< ItemDescriptor > (YY_MOVE (that.value));
         break;
 
@@ -238,6 +241,7 @@ namespace yy {
       case symbol_kind::S_NOUN: // NOUN
       case symbol_kind::S_ADJECTIVE: // ADJECTIVE
       case symbol_kind::S_UNKNOWN: // UNKNOWN
+      case symbol_kind::S_modifier: // modifier
         value.move< std::string > (YY_MOVE (that.value));
         break;
 
@@ -268,6 +272,7 @@ namespace yy {
         break;
 
       case symbol_kind::S_object: // object
+      case symbol_kind::S_object_without_article: // object_without_article
         value.copy< ItemDescriptor > (that.value);
         break;
 
@@ -276,6 +281,7 @@ namespace yy {
       case symbol_kind::S_NOUN: // NOUN
       case symbol_kind::S_ADJECTIVE: // ADJECTIVE
       case symbol_kind::S_UNKNOWN: // UNKNOWN
+      case symbol_kind::S_modifier: // modifier
         value.copy< std::string > (that.value);
         break;
 
@@ -304,6 +310,7 @@ namespace yy {
         break;
 
       case symbol_kind::S_object: // object
+      case symbol_kind::S_object_without_article: // object_without_article
         value.move< ItemDescriptor > (that.value);
         break;
 
@@ -312,6 +319,7 @@ namespace yy {
       case symbol_kind::S_NOUN: // NOUN
       case symbol_kind::S_ADJECTIVE: // ADJECTIVE
       case symbol_kind::S_UNKNOWN: // UNKNOWN
+      case symbol_kind::S_modifier: // modifier
         value.move< std::string > (that.value);
         break;
 
@@ -581,6 +589,7 @@ namespace yy {
         break;
 
       case symbol_kind::S_object: // object
+      case symbol_kind::S_object_without_article: // object_without_article
         yylhs.value.emplace< ItemDescriptor > ();
         break;
 
@@ -589,6 +598,7 @@ namespace yy {
       case symbol_kind::S_NOUN: // NOUN
       case symbol_kind::S_ADJECTIVE: // ADJECTIVE
       case symbol_kind::S_UNKNOWN: // UNKNOWN
+      case symbol_kind::S_modifier: // modifier
         yylhs.value.emplace< std::string > ();
         break;
 
@@ -614,121 +624,136 @@ namespace yy {
           switch (yyn)
             {
   case 2: // input: END
-#line 40 "parser.y"
+#line 43 "parser.y"
                  { setResult(nullptr); YYACCEPT; }
-#line 620 "parserbase.cc"
+#line 630 "parserbase.cc"
     break;
 
   case 3: // input: command END
-#line 41 "parser.y"
+#line 44 "parser.y"
                  { setResult(std::move(yystack_[1].value.as < std::unique_ptr<Action> > ())); YYACCEPT; }
-#line 626 "parserbase.cc"
+#line 636 "parserbase.cc"
     break;
 
   case 4: // command: move_command
-#line 44 "parser.y"
+#line 47 "parser.y"
                         { yylhs.value.as < std::unique_ptr<Action> > () = std::move(yystack_[0].value.as < std::unique_ptr<Action> > ()); }
-#line 632 "parserbase.cc"
+#line 642 "parserbase.cc"
     break;
 
   case 5: // command: take_command
-#line 45 "parser.y"
+#line 48 "parser.y"
                         { yylhs.value.as < std::unique_ptr<Action> > () = std::move(yystack_[0].value.as < std::unique_ptr<Action> > ()); }
-#line 638 "parserbase.cc"
+#line 648 "parserbase.cc"
     break;
 
   case 6: // command: drop_command
-#line 46 "parser.y"
+#line 49 "parser.y"
                         { yylhs.value.as < std::unique_ptr<Action> > () = std::move(yystack_[0].value.as < std::unique_ptr<Action> > ()); }
-#line 644 "parserbase.cc"
+#line 654 "parserbase.cc"
     break;
 
   case 7: // command: inventory_command
-#line 47 "parser.y"
+#line 50 "parser.y"
                         { yylhs.value.as < std::unique_ptr<Action> > () = std::make_unique<ShowInventory>(); }
-#line 650 "parserbase.cc"
+#line 660 "parserbase.cc"
     break;
 
   case 8: // command: SAVE
-#line 48 "parser.y"
+#line 51 "parser.y"
                         { yylhs.value.as < std::unique_ptr<Action> > () = std::make_unique<Save>(); }
-#line 656 "parserbase.cc"
+#line 666 "parserbase.cc"
     break;
 
   case 9: // command: LOAD
-#line 49 "parser.y"
+#line 52 "parser.y"
                         { yylhs.value.as < std::unique_ptr<Action> > () = std::make_unique<Load>(); }
-#line 662 "parserbase.cc"
+#line 672 "parserbase.cc"
     break;
 
   case 10: // move_command: direction
-#line 53 "parser.y"
+#line 56 "parser.y"
                         { yylhs.value.as < std::unique_ptr<Action> > () = std::make_unique<Move>(yystack_[0].value.as < Direction > ()); }
-#line 668 "parserbase.cc"
+#line 678 "parserbase.cc"
     break;
 
   case 11: // move_command: MOVE direction
-#line 54 "parser.y"
+#line 57 "parser.y"
                         { yylhs.value.as < std::unique_ptr<Action> > () = std::make_unique<Move>(yystack_[0].value.as < Direction > ()); }
-#line 674 "parserbase.cc"
+#line 684 "parserbase.cc"
     break;
 
   case 12: // take_command: TAKE object
-#line 58 "parser.y"
+#line 61 "parser.y"
                             { yylhs.value.as < std::unique_ptr<Action> > () = std::make_unique<Take>(yystack_[0].value.as < ItemDescriptor > ()); }
-#line 680 "parserbase.cc"
+#line 690 "parserbase.cc"
     break;
 
   case 13: // take_command: TAKE object FROM object
-#line 59 "parser.y"
+#line 62 "parser.y"
                             { yylhs.value.as < std::unique_ptr<Action> > () = std::make_unique<Take>(yystack_[2].value.as < ItemDescriptor > (), yystack_[0].value.as < ItemDescriptor > ()); }
-#line 686 "parserbase.cc"
+#line 696 "parserbase.cc"
     break;
 
   case 14: // drop_command: DROP object
-#line 63 "parser.y"
+#line 66 "parser.y"
                 { yylhs.value.as < std::unique_ptr<Action> > () = std::make_unique<Drop>(yystack_[0].value.as < ItemDescriptor > ()); }
-#line 692 "parserbase.cc"
+#line 702 "parserbase.cc"
     break;
 
   case 17: // direction: DIRECTION
-#line 72 "parser.y"
+#line 75 "parser.y"
             { yylhs.value.as < Direction > () = directionFromString(yystack_[0].value.as < std::string > ()); }
-#line 698 "parserbase.cc"
+#line 708 "parserbase.cc"
     break;
 
-  case 18: // object: NOUN
-#line 76 "parser.y"
-         { yylhs.value.as < ItemDescriptor > ().noun = yystack_[0].value.as < std::string > (); }
-#line 704 "parserbase.cc"
+  case 18: // object: object_without_article
+#line 79 "parser.y"
+                           { yylhs.value.as < ItemDescriptor > () = yystack_[0].value.as < ItemDescriptor > (); }
+#line 714 "parserbase.cc"
     break;
 
-  case 19: // object: UNKNOWN
-#line 77 "parser.y"
-            { yylhs.value.as < ItemDescriptor > ().noun = yystack_[0].value.as < std::string > (); }
-#line 710 "parserbase.cc"
+  case 19: // object: ARTICLE object
+#line 80 "parser.y"
+                   { yylhs.value.as < ItemDescriptor > () = yystack_[0].value.as < ItemDescriptor > (); }
+#line 720 "parserbase.cc"
     break;
 
-  case 20: // object: ADJECTIVE object
-#line 78 "parser.y"
-                     {
-      yylhs.value.as < ItemDescriptor > () = yystack_[0].value.as < ItemDescriptor > ();
-      yylhs.value.as < ItemDescriptor > ().adjectives.push_back(yystack_[1].value.as < std::string > ());
-    }
-#line 719 "parserbase.cc"
+  case 20: // object_without_article: NOUN
+#line 84 "parser.y"
+                        { yylhs.value.as < ItemDescriptor > ().noun = yystack_[0].value.as < std::string > (); }
+#line 726 "parserbase.cc"
     break;
 
-  case 21: // object: UNKNOWN object
-#line 82 "parser.y"
-                   {
-      yylhs.value.as < ItemDescriptor > () = yystack_[0].value.as < ItemDescriptor > ();
-      yylhs.value.as < ItemDescriptor > ().adjectives.push_back(yystack_[1].value.as < std::string > ());
-    }
-#line 728 "parserbase.cc"
-    break;
-
-
+  case 21: // object_without_article: UNKNOWN
+#line 85 "parser.y"
+                        { yylhs.value.as < ItemDescriptor > ().noun = yystack_[0].value.as < std::string > (); }
 #line 732 "parserbase.cc"
+    break;
+
+  case 22: // object_without_article: modifier object
+#line 86 "parser.y"
+                    {
+      yylhs.value.as < ItemDescriptor > () = yystack_[0].value.as < ItemDescriptor > ();
+      yylhs.value.as < ItemDescriptor > ().adjectives.push_back(yystack_[1].value.as < std::string > ());
+    }
+#line 741 "parserbase.cc"
+    break;
+
+  case 23: // modifier: ADJECTIVE
+#line 93 "parser.y"
+               { yylhs.value.as < std::string > () = yystack_[0].value.as < std::string > (); }
+#line 747 "parserbase.cc"
+    break;
+
+  case 24: // modifier: UNKNOWN
+#line 94 "parser.y"
+               { yylhs.value.as < std::string > () = yystack_[0].value.as < std::string > (); }
+#line 753 "parserbase.cc"
+    break;
+
+
+#line 757 "parserbase.cc"
 
             default:
               break;
@@ -919,74 +944,79 @@ namespace yy {
 
   const signed char ParserBase::yypact_ninf_ = -5;
 
-  const signed char ParserBase::yytable_ninf_ = -1;
+  const signed char ParserBase::yytable_ninf_ = -22;
 
   const signed char
   ParserBase::yypact_[] =
   {
-      -2,    -1,     5,     5,    -5,     2,    -5,    -5,    -5,    -5,
-      11,    -4,    -5,    -5,    -5,    -5,    -5,    -5,    -5,     5,
-       5,     3,    -5,    -5,    -5,    -5,    -5,    -5,     5,    -5
+      -2,     1,     9,     9,    -5,     2,    -5,    -5,    -5,    -5,
+      11,    -4,    -5,    -5,    -5,    -5,    -5,    -5,    -5,    -5,
+       0,     9,     4,    -5,     9,    -5,    -5,    -5,    -5,    -5,
+       9,    -5,    -5
   };
 
   const signed char
   ParserBase::yydefact_[] =
   {
        0,     0,     0,     0,    15,     0,     8,     9,    17,     2,
-       0,     0,     4,     5,     6,     7,    10,    11,    18,     0,
-      19,    12,    14,    16,     1,     3,    20,    21,     0,    13
+       0,     0,     4,     5,     6,     7,    10,    11,    20,    23,
+      24,     0,    12,    18,     0,    14,    16,     1,     3,    19,
+       0,    22,    13
   };
 
   const signed char
   ParserBase::yypgoto_[] =
   {
-      -5,    -5,    -5,    -5,    -5,    -5,    -5,    14,    -3
+      -5,    -5,    -5,    -5,    -5,    -5,    -5,    15,    -3,    -5,
+      -5
   };
 
   const signed char
   ParserBase::yydefgoto_[] =
   {
-       0,    10,    11,    12,    13,    14,    15,    16,    21
+       0,    10,    11,    12,    13,    14,    15,    16,    22,    23,
+      24
   };
 
   const signed char
   ParserBase::yytable_[] =
   {
-      22,     1,     2,     3,     4,     5,     6,     7,    23,     8,
-       8,    24,    25,    28,     9,    17,    26,    27,    18,    19,
-      20,     0,     0,     0,     0,    29
+      25,     1,     2,     3,     4,     5,     6,     7,    26,     8,
+     -21,    27,     8,    28,    30,     9,    17,   -21,    29,     0,
+       0,    31,    18,    19,    20,    21,     0,    32
   };
 
   const signed char
   ParserBase::yycheck_[] =
   {
        3,     3,     4,     5,     6,     7,     8,     9,     6,    11,
-      11,     0,    16,    10,    16,     1,    19,    20,    13,    14,
-      15,    -1,    -1,    -1,    -1,    28
+      10,     0,    11,    17,    10,    17,     1,    17,    21,    -1,
+      -1,    24,    13,    14,    15,    16,    -1,    30
   };
 
   const signed char
   ParserBase::yystos_[] =
   {
-       0,     3,     4,     5,     6,     7,     8,     9,    11,    16,
-      18,    19,    20,    21,    22,    23,    24,    24,    13,    14,
-      15,    25,    25,     6,     0,    16,    25,    25,    10,    25
+       0,     3,     4,     5,     6,     7,     8,     9,    11,    17,
+      19,    20,    21,    22,    23,    24,    25,    25,    13,    14,
+      15,    16,    26,    27,    28,    26,     6,     0,    17,    26,
+      10,    26,    26
   };
 
   const signed char
   ParserBase::yyr1_[] =
   {
-       0,    17,    18,    18,    19,    19,    19,    19,    19,    19,
-      20,    20,    21,    21,    22,    23,    23,    24,    25,    25,
-      25,    25
+       0,    18,    19,    19,    20,    20,    20,    20,    20,    20,
+      21,    21,    22,    22,    23,    24,    24,    25,    26,    26,
+      27,    27,    27,    28,    28
   };
 
   const signed char
   ParserBase::yyr2_[] =
   {
        0,     2,     1,     2,     1,     1,     1,     1,     1,     1,
-       1,     2,     2,     4,     2,     1,     2,     1,     1,     1,
-       2,     2
+       1,     2,     2,     4,     2,     1,     2,     1,     1,     2,
+       1,     1,     2,     1,     1
   };
 
 
@@ -998,9 +1028,9 @@ namespace yy {
   {
   "\"end of file\"", "error", "\"invalid token\"", "MOVE", "TAKE", "DROP",
   "INV", "INSPECT", "SAVE", "LOAD", "FROM", "DIRECTION", "VERB", "NOUN",
-  "ADJECTIVE", "UNKNOWN", "END", "$accept", "input", "command",
+  "ADJECTIVE", "UNKNOWN", "ARTICLE", "END", "$accept", "input", "command",
   "move_command", "take_command", "drop_command", "inventory_command",
-  "direction", "object", YY_NULLPTR
+  "direction", "object", "object_without_article", "modifier", YY_NULLPTR
   };
 #endif
 
@@ -1009,9 +1039,9 @@ namespace yy {
   const signed char
   ParserBase::yyrline_[] =
   {
-       0,    40,    40,    41,    44,    45,    46,    47,    48,    49,
-      53,    54,    58,    59,    63,    67,    68,    72,    76,    77,
-      78,    82
+       0,    43,    43,    44,    47,    48,    49,    50,    51,    52,
+      56,    57,    61,    62,    66,    70,    71,    75,    79,    80,
+      84,    85,    86,    93,    94
   };
 
   void
@@ -1043,5 +1073,5 @@ namespace yy {
 
 
 } // yy
-#line 1047 "parserbase.cc"
+#line 1077 "parserbase.cc"
 

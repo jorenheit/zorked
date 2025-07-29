@@ -14,7 +14,7 @@ enum class WordType {
   Noun,
   Preposition,
   Adjective,
-  Ignored
+  Article
 };
 
 inline WordType operator|(WordType lhs, WordType rhs) {

@@ -54,7 +54,7 @@ ParserBase::symbol_type Parser::yylex() {
     UNREACHABLE("unimplemented preposition");
   }
   case WordType::Adjective: return ParserBase::make_ADJECTIVE(token.str);
-  case WordType::Ignored: UNREACHABLE("ignored words survived");
+  case WordType::Article: return ParserBase::make_ARTICLE();
   case WordType::BuiltinCommand: {
     if (token.str == "move") return ParserBase::make_MOVE();
     if (token.str == "take") return ParserBase::make_TAKE();

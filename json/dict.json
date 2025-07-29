@@ -146,8 +146,9 @@
 	"small": []
     },
 
-    "ignored": [
-	"a",
-	"the"
-    ]
+    "articles": {
+	"a": [],
+	"an": [],
+	"the": []
+    }
 }

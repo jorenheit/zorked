@@ -10,7 +10,8 @@ Dictionary::Dictionary(std::string const &dictFilename) {
     {"verbs", WordType::Verb},
     {"nouns", WordType::Noun},
     {"prepositions", WordType::Preposition},
-    {"adjectives", WordType::Adjective}
+    {"adjectives", WordType::Adjective},
+    {"articles", WordType::Article}
   };
 
   using enum StringTransform;
@@ -25,11 +26,6 @@ Dictionary::Dictionary(std::string const &dictFilename) {
 	_dict[synonym] = Entry { .str = key, .type = wordType };
       }
     }
-  }
-
-  for (auto const &element: dict.get<std::vector<JSONObject>>("ignored")) {
-    auto word = element.get<std::string>();
-    _dict[word] = Entry { .str = word, .type = WordType::Ignored };
   }
 }
   
@@ -59,7 +55,7 @@ std::vector<Dictionary::Entry> Dictionary::tokenize(std::string input, size_t co
       if (i + n - 1 >= vec.size()) continue;
       Entry entry = findEntry(vec, i, n);
       if (entry || n == 1) {
-	if (entry.type != WordType::Ignored) tokens.push_back(entry);
+	tokens.push_back(entry);
 	i += n;
 	break;
       }

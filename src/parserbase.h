@@ -388,6 +388,7 @@ namespace yy {
       char dummy1[sizeof (Direction)];
 
       // object
+      // object_without_article
       char dummy2[sizeof (ItemDescriptor)];
 
       // DIRECTION
@@ -395,6 +396,7 @@ namespace yy {
       // NOUN
       // ADJECTIVE
       // UNKNOWN
+      // modifier
       char dummy3[sizeof (std::string)];
 
       // command
@@ -458,7 +460,8 @@ namespace yy {
     NOUN = 268,                    // NOUN
     ADJECTIVE = 269,               // ADJECTIVE
     UNKNOWN = 270,                 // UNKNOWN
-    END = 271                      // END
+    ARTICLE = 271,                 // ARTICLE
+    END = 272                      // END
       };
       /// Backward compatibility alias (Bison 3.6).
       typedef token_kind_type yytokentype;
@@ -475,7 +478,7 @@ namespace yy {
     {
       enum symbol_kind_type
       {
-        YYNTOKENS = 17, ///< Number of tokens.
+        YYNTOKENS = 18, ///< Number of tokens.
         S_YYEMPTY = -2,
         S_YYEOF = 0,                             // "end of file"
         S_YYerror = 1,                           // error
@@ -493,16 +496,19 @@ namespace yy {
         S_NOUN = 13,                             // NOUN
         S_ADJECTIVE = 14,                        // ADJECTIVE
         S_UNKNOWN = 15,                          // UNKNOWN
-        S_END = 16,                              // END
-        S_YYACCEPT = 17,                         // $accept
-        S_input = 18,                            // input
-        S_command = 19,                          // command
-        S_move_command = 20,                     // move_command
-        S_take_command = 21,                     // take_command
-        S_drop_command = 22,                     // drop_command
-        S_inventory_command = 23,                // inventory_command
-        S_direction = 24,                        // direction
-        S_object = 25                            // object
+        S_ARTICLE = 16,                          // ARTICLE
+        S_END = 17,                              // END
+        S_YYACCEPT = 18,                         // $accept
+        S_input = 19,                            // input
+        S_command = 20,                          // command
+        S_move_command = 21,                     // move_command
+        S_take_command = 22,                     // take_command
+        S_drop_command = 23,                     // drop_command
+        S_inventory_command = 24,                // inventory_command
+        S_direction = 25,                        // direction
+        S_object = 26,                           // object
+        S_object_without_article = 27,           // object_without_article
+        S_modifier = 28                          // modifier
       };
     };
 
@@ -542,6 +548,7 @@ namespace yy {
         break;
 
       case symbol_kind::S_object: // object
+      case symbol_kind::S_object_without_article: // object_without_article
         value.move< ItemDescriptor > (std::move (that.value));
         break;
 
@@ -550,6 +557,7 @@ namespace yy {
       case symbol_kind::S_NOUN: // NOUN
       case symbol_kind::S_ADJECTIVE: // ADJECTIVE
       case symbol_kind::S_UNKNOWN: // UNKNOWN
+      case symbol_kind::S_modifier: // modifier
         value.move< std::string > (std::move (that.value));
         break;
 
@@ -658,6 +666,7 @@ switch (yykind)
         break;
 
       case symbol_kind::S_object: // object
+      case symbol_kind::S_object_without_article: // object_without_article
         value.template destroy< ItemDescriptor > ();
         break;
 
@@ -666,6 +675,7 @@ switch (yykind)
       case symbol_kind::S_NOUN: // NOUN
       case symbol_kind::S_ADJECTIVE: // ADJECTIVE
       case symbol_kind::S_UNKNOWN: // UNKNOWN
+      case symbol_kind::S_modifier: // modifier
         value.template destroy< std::string > ();
         break;
 
@@ -1073,6 +1083,21 @@ switch (yykind)
 #if 201103L <= YY_CPLUSPLUS
       static
       symbol_type
+      make_ARTICLE ()
+      {
+        return symbol_type (token::ARTICLE);
+      }
+#else
+      static
+      symbol_type
+      make_ARTICLE ()
+      {
+        return symbol_type (token::ARTICLE);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
       make_END ()
       {
         return symbol_type (token::END);
@@ -1389,9 +1414,9 @@ switch (yykind)
     /// Constants.
     enum
     {
-      yylast_ = 25,     ///< Last index in yytable_.
-      yynnts_ = 9,  ///< Number of nonterminal symbols.
-      yyfinal_ = 24 ///< Termination state number.
+      yylast_ = 27,     ///< Last index in yytable_.
+      yynnts_ = 11,  ///< Number of nonterminal symbols.
+      yyfinal_ = 27 ///< Termination state number.
     };
 
 
@@ -1435,10 +1460,10 @@ switch (yykind)
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
        5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
-      15,    16
+      15,    16,    17
     };
     // Last valid token kind.
-    const int code_max = 271;
+    const int code_max = 272;
 
     if (t <= 0)
       return symbol_kind::S_YYEOF;
@@ -1461,6 +1486,7 @@ switch (yykind)
         break;
 
       case symbol_kind::S_object: // object
+      case symbol_kind::S_object_without_article: // object_without_article
         value.copy< ItemDescriptor > (YY_MOVE (that.value));
         break;
 
@@ -1469,6 +1495,7 @@ switch (yykind)
       case symbol_kind::S_NOUN: // NOUN
       case symbol_kind::S_ADJECTIVE: // ADJECTIVE
       case symbol_kind::S_UNKNOWN: // UNKNOWN
+      case symbol_kind::S_modifier: // modifier
         value.copy< std::string > (YY_MOVE (that.value));
         break;
 
@@ -1515,6 +1542,7 @@ switch (yykind)
         break;
 
       case symbol_kind::S_object: // object
+      case symbol_kind::S_object_without_article: // object_without_article
         value.move< ItemDescriptor > (YY_MOVE (s.value));
         break;
 
@@ -1523,6 +1551,7 @@ switch (yykind)
       case symbol_kind::S_NOUN: // NOUN
       case symbol_kind::S_ADJECTIVE: // ADJECTIVE
       case symbol_kind::S_UNKNOWN: // UNKNOWN
+      case symbol_kind::S_modifier: // modifier
         value.move< std::string > (YY_MOVE (s.value));
         break;
 
@@ -1598,7 +1627,7 @@ switch (yykind)
 
 
 } // yy
-#line 1602 "parserbase.h"
+#line 1631 "parserbase.h"
 
 
 
