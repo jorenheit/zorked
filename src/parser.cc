@@ -31,7 +31,6 @@ std::unique_ptr<Action> Parser::parseAction(std::string const &input, size_t ngr
   _pos = 0;
 
   if (ParserBase::parse() != 0) {
-    std::cout << "I don't know what that means!\n"; // TODO: factor out narration
     return nullptr;
   }
   return std::move(_result);

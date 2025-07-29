@@ -3,19 +3,20 @@
 #include "player.h"
 #include "location.h"
 #include "condition.h"
+#include "narration.h"
 
 Move::Move(Direction dir):
   _dir(dir)
 {}
 
-// TODO: factor out default narratives
 std::string Move::exec() const {
   assert(_dir != NumDir && "dir should be valid here");
 
   auto [location, conditionIndex] = Game::g_player->getLocation()->connected(_dir);
 
-  if (not location)
-    return "You can't go there.";
+  if (not location) {
+    return Narration::cannot_go_there(directionToString(_dir));
+  }
 
   Condition const &condition = Game::g_conditions.get(conditionIndex);
   if (not condition.eval())
@@ -61,7 +62,6 @@ Take::Take(ItemDescriptor const &object, ItemDescriptor const &prepObject):
 {}
 
 
-// TODO: factor out default narration
 std::string Take::exec() const {
   assert(not _object.noun.empty() && "_object should have a value");
 
@@ -69,9 +69,9 @@ std::string Take::exec() const {
     try {
       auto targetItem = Impl::findItem(_object, Game::g_player->getLocation());
       if (!targetItem) {
-	targetItem = Impl::findItem(_object, Game::g_player);
-	if (targetItem) return "You already have the " + _object.str() + "!";
-	else return "There is no "  + _object.str() + " here.";
+	return Impl::findItem(_object, Game::g_player)
+	  ? Narration::you_already_own(_object.str())
+	  : Narration::there_is_no(_object.str());
       }
 
       auto [result, str] = targetItem->checkTakeCondition();
@@ -79,46 +79,52 @@ std::string Take::exec() const {
 	targetItem->clearTakeCondition();
 	Game::g_player->getLocation()->removeItem(targetItem);
 	Game::g_player->addItem(targetItem);
-	if (str.empty()) return "You took the " + _object.str() + "!"; 
-	else return str;
+	return (not str.empty())
+	  ? str
+	  : Narration::you_took(_object.str());
       }
-      else if (str.empty()) {
-	return "You were unable to take the " + _object.str() + ".";
+      else {
+	return (not str.empty())
+	  ? str
+	  : Narration::you_could_not_take(_object.str());
       }
-      else return str;
     }
     catch (Impl::MultipleItemsByThatNoun) {
-      return "Which " + _object.str() + "?";
+      return Narration::which_one(_object.str());
     }
   }
   else {
     try {
       auto enclosingItem = Impl::findItem(_prepObject, Game::g_player, Game::g_player->getLocation());
-      if (!enclosingItem) return "There is no "  + _prepObject.str() + " here.";
+      if (!enclosingItem) return Narration::there_is_no(_prepObject.str());
+
       try {
 	auto targetItem = Impl::findItem(_object, enclosingItem);
-	if (!targetItem) return "The " + _prepObject.str() + " does not contain a " + _object.str() + ".";
+	if (!targetItem)
+	  return Narration::does_not_contain(_prepObject.str(), _object.str());
 
 	auto [result, str] = targetItem->checkTakeCondition();
 	if (result) {
 	  targetItem->clearTakeCondition(); // TODO: add "persistent" field to condition -> determines if cleared after success
 	  enclosingItem->removeItem(targetItem);
 	  Game::g_player->addItem(targetItem);
-	  if (str.empty())
-	    return "You took the " + _object.str() + " from the " + _prepObject.str() + "!";
-	  else return str;
+
+	  return (not str.empty())
+	    ? str
+	    : Narration::you_took_from(_object.str(), _prepObject.str());
 	}
-	else if (str.empty()) {
-	  return "You were unable to take the " + _object.str() + ".";
+	else {
+	  return (not str.empty())
+	    ? str
+	    : Narration::you_could_not_take_from(_object.str(), _prepObject.str());
 	}
-	else return str;
       }
       catch (Impl::MultipleItemsByThatNoun) {
-	return "Which " + _object.str() + "?";
+	return Narration::which_one(_object.str());
       }
     }
     catch (Impl::MultipleItemsByThatNoun) {
-      return "Which " + _prepObject.str() + "?";
+      return Narration::which_one(_object.str());
     }
   }
   UNREACHABLE();
@@ -135,16 +141,16 @@ std::string Drop::exec() const {
   try {
     auto targetItem = Impl::findItem(_object, Game::g_player);
     if (!targetItem) {
-      return "You don't have a "  + _object.str() + ".";
+      return Narration::you_do_not_own(_object.str());
     }
     else {
       Game::g_player->removeItem(targetItem);
       Game::g_player->getLocation()->addItem(targetItem);
-      return "You dropped the " + _object.str() + ".";
+      return Narration::you_dropped(_object.str());
     }
   }
   catch (Impl::MultipleItemsByThatNoun) {
-    return "Which " + _object.str() + "?";
+    return Narration::which_one(_object.str());
   }
   UNREACHABLE();
 }
@@ -158,31 +164,25 @@ std::string Inspect::exec() const {
 
   try {
     auto targetItem = Impl::findItem(_object, Game::g_player, Game::g_player->getLocation());
-    if (!targetItem) {
-      return "There is no "  + _object.str() + " here.";
-    }
-    else {
-      return targetItem->inspect();
-    }
+    return targetItem
+      ? targetItem->inspect()
+      : Narration::there_is_no(_object.str());
   }
   catch (Impl::MultipleItemsByThatNoun) {
-    return "Which " + _object.str() + "?";
+    return Narration::which_one(_object.str());
   }
   UNREACHABLE();
 }
 
-// TODO: factor out inventory showing (should be the same as showing "inventory" of a location maybe).
 std::string ShowInventory::exec() const {
   auto const &items  = Game::g_player->items();
-  if (items.empty()) {
-    return "You don't have any items on you.";
-  }
+  if (items.empty()) return Narration::empty_inventory();
   
-  std::string result;
+  std::vector<std::string> itemLabels;
   for (auto const &item: items) {
-    result += item->description() + "\n";
+    itemLabels.push_back(item->label());
   }
-  return result;
+  return Narration::show_inventory(itemLabels);
 }
 
 std::string Save::exec() const {

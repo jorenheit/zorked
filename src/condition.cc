@@ -150,7 +150,7 @@ std::shared_ptr<Condition> Condition::construct(JSONObject const &condObj) {
   }
 
   return result.empty()
-    ? std::make_shared<Condition>()
+    ? std::make_shared<Condition>(success)
     : std::make_shared<Condition>(And, result, fail, success);
 }
 

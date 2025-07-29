@@ -8,6 +8,7 @@
 #include "jsonobject.h"
 #include "action.h"
 #include "parser.h"
+#include "narration.h"
 
 using namespace Game;
 
@@ -201,10 +202,11 @@ namespace Game {
       std::string input;
       std::getline(std::cin, input);
       std::unique_ptr<Action> action = parser.parseAction(input);
-      if (action)
+      if (action) {
 	std::cout << action->exec() << '\n';
+      }
       else {
-	std::cout << "Wut?\n";
+	std::cout << Narration::dont_know() << '\n';
       }
     }
   }

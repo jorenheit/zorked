@@ -1,15 +1,14 @@
 [ ] look
-[ ] inspect
-    [ ] "my" -> refer to object in inventory
-[ ] check inventory
+[x] inspect
+[x] check inventory
 [ ] interactions
 [ ] help
 [ ] save/load
     [x] serializer
     [x] deserializer
-    [ ] commands
+    [ ] commands in-game
 [ ] quit
-[ ] narration refactor
+[x] narration refactor
 [ ] narration style
 [ ] custom error messages for JSON syntax errors
 [ ] better includes (fwd declarations)
@@ -19,7 +18,7 @@
     [ ] Conditions of form [object].is.[class]
 [ ] persistent conditions -> do not clear after being fulfilled    
 [ ] adjectives could also match state flags (if set to true)
-
+[ ] check if shared_ptr should be replaced
 
 BUGS
 [x] clearing move-condition is not symmetric yet

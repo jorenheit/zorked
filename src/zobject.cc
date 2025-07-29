@@ -2,6 +2,7 @@
 #include "item.h"
 #include "util.h"
 #include "game.h"
+#include "narration.h"
 
 std::shared_ptr<ZObject> ZObject::construct(std::string const &id, JSONObject const &jsonObj) {
   auto label = jsonObj.get<std::string>("label");
@@ -20,7 +21,7 @@ std::shared_ptr<ZObject> ZObject::construct(std::string const &id, JSONObject co
 
   auto conditionObject = [&jsonObj]() -> JSONObject {
     if (not jsonObj.contains("inspect")) {
-      return json {{"success", "You do not see anything out of the ordinary."}};
+      return json {{"success", Narration::nothing_to_see()}};
     }
     else if (jsonObj.at("inspect").is_string()) {
       return json {{"success", jsonObj.get<std::string>("inspect")}};
@@ -112,7 +113,7 @@ std::string ZObject::inspect() {
 
   std::string const &fail = inspectCondition.failString();
   if (not fail.empty()) return fail;
-  return "You do not see anything out of the ordinary.";
+  return Narration::nothing_to_see();
 }
 
 bool ZObject::restore(json const &jsonObj) {

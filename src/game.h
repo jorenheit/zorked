@@ -11,31 +11,6 @@
 
 namespace Game {
 
-  class ConditionManager {
-    std::vector<std::shared_ptr<Condition>> _conditions;
-    std::vector<JSONObject> _conditionProxies;
-    bool _initialized = false;
-    
-  public:
-    size_t add(JSONObject const &obj) {
-      _conditionProxies.push_back(obj);
-      return _conditionProxies.size() - 1;
-    }
-
-    Condition &get(size_t index) {
-      assert(_initialized && "Calling get before process.");
-      assert(index < _conditions.size() && "index out of bounds");
-      return *_conditions[index];
-    }
-
-    void process() {
-      for (JSONObject const &jsonObj: _conditionProxies) {
-	_conditions.emplace_back(Condition::construct(jsonObj));
-      }
-      _initialized = true;
-    }
-  };
-  
   extern std::shared_ptr<Player> g_player;
   extern std::unordered_map<std::string, std::shared_ptr<Location>> g_locations;
   extern std::unordered_map<std::string, std::shared_ptr<Item>> g_localItems;
