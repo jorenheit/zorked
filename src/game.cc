@@ -81,7 +81,7 @@ namespace Game {
     std::filesystem::path dictionaryPath = rootPath;
     dictionaryPath.replace_filename(dictionaryFilename);
     g_dict = Dictionary(dictionaryPath);
-    
+
     // Load player data
     std::filesystem::path playerPath = rootPath;
     playerPath.replace_filename(playerFilename);
@@ -89,7 +89,6 @@ namespace Game {
 
     g_player = Player::construct(playerData);
     addLocalItemsRecursively(g_player, playerData);
-
     
     // Load common (stateless) items
     std::filesystem::path itemPath = rootPath;
@@ -99,7 +98,7 @@ namespace Game {
     for (auto const &[key, value]: itemData) {
       addCommonItemsRecursively(key, value);
     }
-    
+
     // Load locations and their items
     std::filesystem::path locPath = rootPath;
     locPath.replace_filename(locationsFilename); 
@@ -115,7 +114,7 @@ namespace Game {
     std::filesystem::path worldPath = rootPath;
     worldPath.replace_filename(worldFilename);
     JSONObject worldData = parseEntireFile(worldPath);
-    
+
     // Start location
     auto startLocationID = worldData.get<std::string>("start");
     std::shared_ptr<Location> startLocation = locationByID(startLocationID);
@@ -193,11 +192,17 @@ namespace Game {
     
     while (true) {
       std::shared_ptr<Location> current = g_player->getLocation();
+
       std::cout << current->label() << '\n';
-      std::cout << current->description() << '\n';
-      for (auto const &itemPtr: current->items()) {
-	std::cout << itemPtr->description() << '\n';
+      if (!current->visited()) {
+	std::cout << current->description() << " ";
       }
+      current->visit();
+
+      for (auto const &item: current->items()) {
+	std::cout << item->description() << " ";
+      }
+      std::cout << '\n';
 
       std::string input;
       std::getline(std::cin, input);

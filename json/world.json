@@ -7,7 +7,7 @@
 	    "direction": "north",
 	    "to": "bedroom",
 	    "move-condition": {
-		"player.has.key1": true,
+		"player.has.key": true,
 		"fail": "The door is locked."
 	    },
 	    "symmetric": true

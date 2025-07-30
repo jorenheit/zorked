@@ -75,7 +75,6 @@ std::shared_ptr<Condition> Condition::construct(JSONObject const &condObj) {
   // The conditional node is either:
   // 1. A key/value pair 
   // 2. A logical expression composed of an operator and multiple other nodes
-
   auto fail = condObj.getOrDefault<std::string>("fail");
   auto success = condObj.getOrDefault<std::string>("success");
   
@@ -192,5 +191,26 @@ Condition::LogicType Condition::logicOperatorFromString(std::string const &str) 
 
 std::string Condition::logicOperatorToString(LogicType op) {
   return logicOperatorStrings[op];
+}
+
+
+size_t ConditionManager::add(JSONObject const &obj) {
+  assert(not _initialized && "Calling add after process");
+  _conditionProxies.push_back(obj);
+  return _conditionProxies.size() - 1;
+}
+
+Condition &ConditionManager::get(size_t index) {
+  assert(_initialized && "Calling get before process.");
+  assert(index < _conditions.size() && "index out of bounds");
+  return *_conditions[index];
+}
+
+void ConditionManager::process() {
+  for (JSONObject const &jsonObj: _conditionProxies) {
+    auto ptr = Condition::construct(jsonObj);
+    _conditions.emplace_back(ptr);
+  }
+  _initialized = true;
 }
 

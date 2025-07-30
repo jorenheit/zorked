@@ -182,7 +182,7 @@ std::string ShowInventory::exec() const {
   for (auto const &item: items) {
     itemLabels.push_back(item->label());
   }
-  return Narration::show_inventory(itemLabels);
+  return Narration::list_items("inventory", itemLabels);
 }
 
 std::string Save::exec() const {

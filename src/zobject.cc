@@ -6,7 +6,6 @@
 
 std::shared_ptr<ZObject> ZObject::construct(std::string const &id, JSONObject const &jsonObj) {
   auto label = jsonObj.get<std::string>("label");
-  auto description = jsonObj.getOrDefault<std::string>("description");
 
   std::vector<std::string> nouns;
   for (auto const &noun: jsonObj.getOrDefault<std::vector<JSONObject>>("nouns")) {
@@ -19,7 +18,20 @@ std::shared_ptr<ZObject> ZObject::construct(std::string const &id, JSONObject co
     state[key] = value;
   }
 
-  auto conditionObject = [&jsonObj]() -> JSONObject {
+  auto loreConditionObject = [&jsonObj]() -> JSONObject {
+    if (not jsonObj.contains("description")) {
+      return json {{"success", ""}};
+    }
+    else if (jsonObj.at("description").is_string()) {
+      return json {{"success", jsonObj.get<std::string>("description")}};
+    }
+    else {
+      return jsonObj.get<JSONObject>("description").get<JSONObject>("lore-condition");
+    }
+  }();
+  size_t loreConditionIndex = Game::g_conditions.add(loreConditionObject);
+  
+  auto inspectConditionObject = [&jsonObj]() -> JSONObject {
     if (not jsonObj.contains("inspect")) {
       return json {{"success", Narration::nothing_to_see()}};
     }
@@ -31,23 +43,24 @@ std::shared_ptr<ZObject> ZObject::construct(std::string const &id, JSONObject co
     }
   }();
   
-  if (not conditionObject.contains("success")) {
+  if (not inspectConditionObject.contains("success")) {
     throw Exception::SpecificFormatError(jsonObj.path(), jsonObj.trace(),
 					 "'inspect-condition' field must contain a 'success'-field.");
   }
   
-  size_t conditionIndex = Game::g_conditions.add(conditionObject);
-  return std::make_shared<ZObject>(id, label, description, nouns, state, conditionIndex);
+  size_t inspectConditionIndex = Game::g_conditions.add(inspectConditionObject);
+  return std::make_shared<ZObject>(id, label, nouns, state, loreConditionIndex, inspectConditionIndex);
 }
 
 
-ZObject::ZObject(std::string const &id, std::string const &label, std::string const &description,
-		 std::vector<std::string> const &nouns, std::unordered_map<std::string, bool> const &state,
+ZObject::ZObject(std::string const &id, std::string const &label, std::vector<std::string> const &nouns,
+		 std::unordered_map<std::string, bool> const &state,
+		 size_t loreConditionIndex,
 		 size_t inspectConditionIndex):
   _id(id),
   _label(label),
-  _description(description),
   _nouns(nouns),
+  _loreConditionIndex(loreConditionIndex),
   _inspectConditionIndex(inspectConditionIndex),
   _state(state)
 {}
@@ -61,8 +74,12 @@ std::string const &ZObject::label() const {
 }
 
 std::string const &ZObject::description() const {
-  return _description;
+  Condition const &loreCondition = Game::g_conditions.get(_loreConditionIndex);
+  return loreCondition.eval()
+    ? loreCondition.successString()
+    : loreCondition.failString();
 }
+
 
 std::vector<std::string> const &ZObject::nouns() const {
   return _nouns;

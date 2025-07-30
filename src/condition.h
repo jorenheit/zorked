@@ -74,23 +74,10 @@ class ConditionManager {
   bool _initialized = false;
     
 public:
-  size_t add(JSONObject const &obj) {
-    _conditionProxies.push_back(obj);
-    return _conditionProxies.size() - 1;
-  }
+  size_t add(JSONObject const &obj);
+  Condition &get(size_t index);
+  void process();
 
-  Condition &get(size_t index) {
-    assert(_initialized && "Calling get before process.");
-    assert(index < _conditions.size() && "index out of bounds");
-    return *_conditions[index];
-  }
-
-  void process() {
-    for (JSONObject const &jsonObj: _conditionProxies) {
-      _conditions.emplace_back(Condition::construct(jsonObj));
-    }
-    _initialized = true;
-  }
 }; // class ConditionManager
 
 
