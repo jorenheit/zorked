@@ -1,6 +1,7 @@
 #include "parser.h"
 #include "util.h"
 
+// TODO: make Parser a static object within yylex
 namespace Impl {
   Parser *parser = nullptr;
 }

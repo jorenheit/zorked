@@ -4,16 +4,15 @@
 #include <functional>
 #include <memory>
 #include <vector>
+#include "json_fwd.hpp"
 
-#include "jsonobject.h"
-
-class ZObject;
 class Item;
+class ObjectPointer;
 
 class Condition {
   std::function<bool()> _check;
-  std::string _fail;
-  std::string _success;
+  std::string const _fail;
+  std::string const _success;
   bool _empty = false;
   
 public:
@@ -42,20 +41,22 @@ public:
 
   
   Condition(std::string const &msg = "");
+  Condition(Condition const &) = default;
+  Condition(Condition&&) = default;
   Condition(ComparisonType comp,
-	    std::shared_ptr<ZObject> target,
-	    std::shared_ptr<Item> item,
+	    ObjectPointer target,
+	    ObjectPointer item, // should this be more typesafe?
 	    size_t value,
 	    std::string const &failMsg = "",
 	    std::string const &successMsg = "");
   
-  Condition(std::shared_ptr<ZObject> target,
+  Condition(ObjectPointer target,
 	    std::string const &state,
 	    bool value,
 	    std::string const &failMsg = "",
 	    std::string const &successMsg = "");
 
-  Condition(LogicType op, std::vector<std::shared_ptr<Condition>> const &operands,
+  Condition(LogicType op, std::vector<std::unique_ptr<Condition>> &&operands,
 	    std::string const &failMsg = "",
 	    std::string const &successMsg = "");
 
@@ -64,21 +65,9 @@ public:
   inline std::string const &failString() const { return _fail; }
   inline bool empty() const { return _empty; }
   void clear();
-  
-  static std::shared_ptr<Condition> construct(JSONObject const &condObj);
+
+  static std::unique_ptr<Condition> construct(nlohmann::json const &obj, std::string path = "");
 }; // class Condition
-
-class ConditionManager {
-  std::vector<std::shared_ptr<Condition>> _conditions;
-  std::vector<JSONObject> _conditionProxies;
-  bool _initialized = false;
-    
-public:
-  size_t add(JSONObject const &obj);
-  Condition &get(size_t index);
-  void process();
-
-}; // class ConditionManager
 
 
 #endif // CONDITION_H

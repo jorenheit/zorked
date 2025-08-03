@@ -6,8 +6,6 @@
 #include <tuple>
 
 #include "util.h"
-#include "game.h"
-#include "dictionary.h"
 #include "direction.h"
 #include "item.h"
 

@@ -1,67 +1,53 @@
+#include "exception.h"
 #include "zobject.h"
 #include "item.h"
 #include "util.h"
 #include "game.h"
 #include "narration.h"
+#include "condition.h"
+#include "objectmanager.h"
+#include "json.hpp"
 
-std::shared_ptr<ZObject> ZObject::construct(std::string const &id, JSONObject const &jsonObj) {
-  auto label = jsonObj.get<std::string>("label");
+using json = nlohmann::json;
 
-  std::vector<std::string> nouns;
-  for (auto const &noun: jsonObj.getOrDefault<std::vector<JSONObject>>("nouns")) {
-    nouns.push_back(noun.get<std::string>());
-  }
-  if (nouns.empty()) nouns.push_back(id);
+std::unique_ptr<ZObject> ZObject::construct(std::string const &id, json const &obj) {
+  auto label = obj.at("label").get<std::string>();
+  auto nouns = obj.at("nouns").get<std::vector<std::string>>();
+  if (nouns.empty())
+    nouns.push_back(id);
+
+  std::unique_ptr<Condition> loreCondition = Condition::construct(obj.at("description").at("lore-condition"));
+  std::unique_ptr<Condition> inspectCondition = Condition::construct(obj.at("inspect").at("inspect-condition"));
 
   std::unordered_map<std::string, bool> state;
-  for (auto const &[key, value]: jsonObj.getOrDefault<JSONObject>("state")) {
+  for (auto const &[key, value]: obj.at("state").items()) {
+    if (key == "_path") continue;
     state[key] = value;
   }
+  auto itemIDs = obj.at("items").get<std::vector<std::string>>();
 
-  auto loreConditionObject = [&jsonObj]() -> JSONObject {
-    if (not jsonObj.contains("description")) {
-      return json {{"success", ""}};
-    }
-    else if (jsonObj.at("description").is_string()) {
-      return json {{"success", jsonObj.get<std::string>("description")}};
-    }
-    else {
-      return jsonObj.get<JSONObject>("description").get<JSONObject>("lore-condition");
-    }
-  }();
-  size_t loreConditionIndex = Game::g_conditions.add(loreConditionObject);
-  
-  auto inspectConditionObject = [&jsonObj]() -> JSONObject {
-    if (not jsonObj.contains("inspect")) {
-      return json {{"success", Narration::nothing_to_see()}};
-    }
-    else if (jsonObj.at("inspect").is_string()) {
-      return json {{"success", jsonObj.get<std::string>("inspect")}};
-    }
-    else {
-      return jsonObj.get<JSONObject>("inspect").get<JSONObject>("inspect-condition");
-    }
-  }();
-  
-  if (not inspectConditionObject.contains("success")) {
-    throw Exception::SpecificFormatError(jsonObj.path(), jsonObj.trace(),
-					 "'inspect-condition' field must contain a 'success'-field.");
+  std::vector<Item*> items;
+  for (std::string const &id: itemIDs) {
+    ObjectPointer ptr = Game::g_objectManager.get(id, ObjectType::LocalItem, ObjectType::CommonItem);
+    if (!ptr) throw Exception::UndefinedReference(obj.at("_path"), id);
+    items.push_back(ptr.get<Item*>()); // Will construct the object from its proxy if necessary
   }
-  
-  size_t inspectConditionIndex = Game::g_conditions.add(inspectConditionObject);
-  return std::make_shared<ZObject>(id, label, nouns, state, loreConditionIndex, inspectConditionIndex);
+
+  return std::make_unique<ZObject>(id, label, nouns, items, state, std::move(loreCondition), std::move(inspectCondition));
 }
 
-
+// Todo: move semantics
 ZObject::ZObject(std::string const &id, std::string const &label, std::vector<std::string> const &nouns,
+		 std::vector<Item*> const &items,
 		 std::unordered_map<std::string, bool> const &state,
-		 size_t loreConditionIndex,
-		 size_t inspectConditionIndex):
+		 std::unique_ptr<Condition> loreCondition,
+		 std::unique_ptr<Condition> inspectCondition):
   _id(id),
   _label(label),
   _nouns(nouns),
-  _loreConditionIndex(loreConditionIndex),
-  _inspectConditionIndex(inspectConditionIndex),
+  _loreCondition(std::move(loreCondition)),
+  _inspectCondition(std::move(inspectCondition)),
+  _items(items),
   _state(state)
 {}
 
@@ -74,10 +60,9 @@ std::string const &ZObject::label() const {
 }
 
 std::string const &ZObject::description() const {
-  Condition const &loreCondition = Game::g_conditions.get(_loreConditionIndex);
-  return loreCondition.eval()
-    ? loreCondition.successString()
-    : loreCondition.failString();
+  return _loreCondition->eval()
+    ? _loreCondition->successString()
+    : _loreCondition->failString();
 }
 
 
@@ -85,7 +70,7 @@ std::vector<std::string> const &ZObject::nouns() const {
   return _nouns;
 }
 
-std::vector<std::shared_ptr<Item>> const &ZObject::items() const {
+std::vector<Item*> const &ZObject::items() const {
   return _items;
 }
 
@@ -93,18 +78,18 @@ std::unordered_map<std::string, bool> const &ZObject::state() const {
   return _state;
 }
 
-void ZObject::addItem(std::shared_ptr<Item> item) {
+void ZObject::addItem(Item *item) {
   _items.push_back(item);
 }
 
-bool ZObject::removeItem(std::shared_ptr<Item> item) {
+bool ZObject::removeItem(Item *item) {
   auto it = std::find(_items.begin(), _items.end(), item);
   if (it == _items.end()) return false;
   _items.erase(it);
   return true;
 }
 
-size_t ZObject::contains(std::shared_ptr<Item> item) const {
+size_t ZObject::contains(Item *item) const {
   size_t count = 0;
   for (auto const &itemPtr: _items) {
     count += (itemPtr == item);
@@ -124,32 +109,25 @@ void ZObject::setState(std::string const &stateStr, bool value) {
 }
 
 std::string ZObject::inspect() {
-  Condition const &inspectCondition = Game::g_conditions.get(_inspectConditionIndex);
-  if (inspectCondition.eval())
-    return inspectCondition.successString();
+  if (_inspectCondition->eval()) {
+    std::string const &success = _inspectCondition->successString();
+    if (not success.empty()) return success;
+    return Narration::nothing_to_see();
+  }
 
-  std::string const &fail = inspectCondition.failString();
+  std::string const &fail = _inspectCondition->failString();
   if (not fail.empty()) return fail;
   return Narration::nothing_to_see();
 }
 
-bool ZObject::restore(json const &jsonObj) {
+bool ZObject::restore(json const &obj) {
   _items.clear();
 
-  for (std::string const &id: jsonObj.at("items").get<std::vector<std::string>>()) {
-    std::shared_ptr<Item> ptr = Game::commonItemByID(id);
-    if (ptr) {
-      addItem(ptr);
-      continue;
-    }
-    ptr = Game::localItemByID(id);
-    if (ptr) {
-      addItem(ptr);
-      continue;
-    }
-    return false;
+  for (std::string const &id: obj.at("items").get<std::vector<std::string>>()) {
+    ObjectPointer ptr = Game::g_objectManager.get(id, ObjectType::CommonItem, ObjectType::LocalItem);
+    if (ptr) addItem(ptr.get<Item*>());
+    else return false;
   }
-
-  _state = jsonObj.at("state");
+  _state = obj.at("state");
   return true;
 }

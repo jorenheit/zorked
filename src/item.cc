@@ -1,5 +1,10 @@
+#include <iostream>
 #include "item.h"
 #include "game.h"
+#include "condition.h"
+
+#include "json.hpp" // TODO: move all construct implementations to seperate TU
+using json = nlohmann::json;
 
 std::string ItemDescriptor::str() const {
   std::string result;
@@ -10,28 +15,25 @@ std::string ItemDescriptor::str() const {
   return result;
 }
 
-
-std::shared_ptr<Item> Item::construct(std::string const &id, bool common, JSONObject const &jsonObj) {
-  auto ptr = ZObject::construct(id, jsonObj);
-  bool portable = jsonObj.getOrDefault<bool>("portable", false);
-  double weight = jsonObj.getOrDefault<double>("weight", 1.0);
-  size_t conditionIndex = Game::g_conditions.add(jsonObj.getOrDefault<JSONObject>("take-condition"));
-
-  std::vector<std::string> adjectives;
-  for (auto const &adj: jsonObj.getOrDefault<std::vector<JSONObject>>("adjectives")) {
-    adjectives.push_back(adj.get<std::string>());
-  }
-  
-  return std::make_shared<Item>(*ptr, common, portable, weight, conditionIndex, adjectives);
+std::unique_ptr<Item> Item::construct(std::string const &id, json const &obj) {
+  std::unique_ptr<ZObject> zObj = ZObject::construct(id, obj);
+  auto common = obj.at("common").get<bool>();
+  auto portable = obj.at("portable").get<bool>();
+  auto weight = obj.at("weight").get<double>();
+  std::unique_ptr<Condition> takeCondition = Condition::construct(obj.at("take-condition"));
+  std::vector<std::string> adjectives = obj.at("adjectives");
+  return std::make_unique<Item>(std::move(*zObj), common, portable, weight, std::move(takeCondition), adjectives);
 }
 
-Item::Item(ZObject const &zObj, bool common, bool portable, double weight,
-	   size_t conditionIndex, std::vector<std::string> const &adjectives):
-  ZObject(zObj),
+// TODO: move semantics?
+Item::Item(ZObject &&parent, bool common, bool portable, double weight,
+	   std::shared_ptr<Condition> takeCondition,
+	   std::vector<std::string> const &adjectives):
+  ZObject(std::move(parent)),
   _common(common),
   _portable(portable),
   _weight(weight),
-  _takeConditionIndex(conditionIndex),
+  _takeCondition(std::move(takeCondition)),
   _adjectives(adjectives)
 {}
 
@@ -75,28 +77,34 @@ bool Item::match(ItemDescriptor const &descr) const {
 }
 
 void Item::clearTakeCondition() {
-  Game::g_conditions.get(_takeConditionIndex).clear();
+  _takeCondition->clear();
 }
 
 std::pair<bool, std::string> Item::checkTakeCondition() const {
-  Condition const &takeCondition = Game::g_conditions.get(_takeConditionIndex);
-  return takeCondition.eval() 
-    ? std::make_pair(true, takeCondition.successString())
-    : std::make_pair(false, takeCondition.failString());
+  return _takeCondition->eval() 
+    ? std::make_pair(true, _takeCondition->successString())
+    : std::make_pair(false, _takeCondition->failString());
 }
 
-void Item::to_json(json &jsonObj) const {
-  jsonObj = json {
-    {"items", ZObject::items()},
-    {"state", ZObject::state()},
-    {"take-cleared", Game::g_conditions.get(_takeConditionIndex).empty()}
-  };
+void Item::to_json(json &obj) const {
+  obj = json::object();
+  std::cerr << "TODO: implement Item::to_json\n";
+  std::exit(1);
 }
 
-bool Item::restore(json const &jsonObj) {
-  if (jsonObj.at("take-cleared").get<bool>()) {
-    Game::g_conditions.get(_takeConditionIndex).clear();
+bool Item::restore(json const &obj) {
+  if (obj.at("take-cleared").get<bool>()) {
+    _takeCondition->clear();
   }
-  
-  return ZObject::restore(jsonObj);
+  std::cerr << "TODO: implement Item::restore\n";
+  std::exit(1);
+  return ZObject::restore(obj);
+}
+
+void to_json(nlohmann::json &jsonObj, Item const &item) {
+  item.to_json(jsonObj);
+}
+
+void to_json(nlohmann::json &jsonObj, std::shared_ptr<Item> const &item) {
+  jsonObj = item->id();
 }

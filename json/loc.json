@@ -7,7 +7,7 @@
 		"label": "Bedroom Door",
 		"description": {
 		    "lore-condition": {
-			"door.is.locked": true,
+			"door.is.locked": false,
 			"success": "The north door seems to be locked.",
 			"fail": "The north door has been unlocked."
 		    }
@@ -28,6 +28,9 @@
 		    }
 		}
 	    }
+	},
+	"common-items": {
+	    "coin": 4
 	}
     },
 

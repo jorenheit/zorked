@@ -1,6 +1,20 @@
-#include "jsonobject.h"
+#include <fstream>
 #include "dictionary.h"
 #include "util.h"
+#include "exception.h"
+#include "json.hpp"
+
+using json = nlohmann::json;
+
+namespace {
+  json parseEntireFile(std::filesystem::path const &filename) {
+    std::ifstream file(filename);
+    if (!file) {
+      throw Exception::ErrorOpeningFile(filename);
+    }
+    return json::parse(file);
+  }
+}
 
 Dictionary::Dictionary(std::string const &dictFilename) {
   static std::pair<std::string, WordType> const sections[] {
@@ -15,14 +29,14 @@ Dictionary::Dictionary(std::string const &dictFilename) {
   };
 
   using enum StringTransform;
-  JSONObject dict = parseEntireFile(dictFilename);
+  json dict = parseEntireFile(dictFilename);
   for (auto &[sectionName, wordType]: sections) {
-    JSONObject sect = dict.get<JSONObject>(sectionName);
-    for (auto const &[key_, value]: sect) {
+    json sect = dict.at(sectionName);
+    for (auto const &[key_, value]: sect.items()) {
       std::string key = transformString<ToLower, RemoveSpaces>(key_);
       _dict[key] = Entry{ .str = key, .type = wordType };
-      for (auto const &[index, word]: value) {
-	std::string synonym = transformString<ToLower, RemoveSpaces>(word.get<std::string>());
+      for (std::string synonym: value) {
+	synonym = transformString<ToLower, RemoveSpaces>(synonym);
 	_dict[synonym] = Entry { .str = key, .type = wordType };
       }
     }

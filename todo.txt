@@ -23,6 +23,7 @@
 [ ] adjectives could also match state flags (if set to true)
 [ ] check if shared_ptr should be replaced
 [ ] use linenoise for better commandline experience
+[x] refactor object managing system to first add proxies and construct all objects when all proxies are present
 
 BUGS
 [x] clearing move-condition is not symmetric yet

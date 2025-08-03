@@ -13,7 +13,6 @@ C_SRCS   :=
 CC_SRCS  := \
 	$(Y_SRC) \
 	main.cc \
-	parser.cc \
 	util.cc \
 	direction.cc \
 	dictionary.cc \
@@ -23,7 +22,11 @@ CC_SRCS  := \
 	location.cc \
 	player.cc \
 	zobject.cc \
-	condition.cc
+	condition.cc \
+	preprocessor.cc \
+	objectmanager.cc \
+	parser.cc 
+
 
 # Object files
 OBJS = $(C_SRCS:.c=.o) $(CC_SRCS:.cc=.o)

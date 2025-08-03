@@ -1,9 +1,14 @@
 #include "action.h"
+
 #include "game.h"
 #include "player.h"
 #include "location.h"
 #include "condition.h"
 #include "narration.h"
+#include "dictionary.h"
+
+#define OBJECTMANAGER_IMPLEMENTATION
+#include "objectmanager.h"
 
 Move::Move(Direction dir):
   _dir(dir)
@@ -12,45 +17,40 @@ Move::Move(Direction dir):
 std::string Move::exec() const {
   assert(_dir != NumDir && "dir should be valid here");
 
-  auto [location, conditionIndex] = Game::g_player->getLocation()->connected(_dir);
+  Player *player = Game::g_objectManager.player();
+  auto const &[location, condition] = player->getLocation()->connection(_dir);
 
   if (not location) {
     return Narration::cannot_go_there(directionToString(_dir));
   }
-
-  Condition const &condition = Game::g_conditions.get(conditionIndex);
-  if (not condition.eval())
-    return condition.failString();
+  if (not condition->eval())
+    return condition->failString();
   
   location->clearMoveCondition(_dir);
-  Game::g_player->setLocation(location);
-  return condition.successString();
+  player->setLocation(location);
+  return condition->successString();
 }
 
 namespace Impl {
   struct MultipleItemsByThatNoun {};
 
   template <typename ... Objects>
-  std::shared_ptr<Item> findItemImpl(ItemDescriptor const &object, std::shared_ptr<Item> result, std::shared_ptr<ZObject> first, Objects&& ... rest) {
-    for (auto const &item: first->items()) {
+  Item *findItemImpl(ItemDescriptor const &object, Item *result, ZObject *first, Objects ... rest) {
+    for (Item *item: first->items()) {
       if (item->match(object)) {
-	if (!result) {
-	  result = item;
-	}
-	else if (not result->common()) {
-	  throw MultipleItemsByThatNoun{};
-	}
+	if (!result) result = item;
+	else if (not result->common()) throw MultipleItemsByThatNoun{};
       }
     }
     
     if constexpr (sizeof ... (rest) > 0) {
-      return findItemImpl(object, result, std::forward<Objects>(rest)...);
+      return findItemImpl(object, result, rest ...);
     }
     else return result;
   }
 
   template <typename ... Objects>
-  std::shared_ptr<Item> findItem(ItemDescriptor const &object, std::shared_ptr<ZObject> first, Objects&& ... rest) {
+  Item *findItem(ItemDescriptor const &object, ZObject *first, Objects&& ... rest) {
     return findItemImpl(object, nullptr, first, std::forward<Objects>(rest)...);
   }
 } // namespace Impl
@@ -65,20 +65,25 @@ Take::Take(ItemDescriptor const &object, ItemDescriptor const &prepObject):
 std::string Take::exec() const {
   assert(not _object.noun.empty() && "_object should have a value");
 
+  Player *player = Game::g_objectManager.player();
   if (_prepObject.noun.empty()) {
     try {
-      auto targetItem = Impl::findItem(_object, Game::g_player->getLocation());
+      auto targetItem = Impl::findItem(_object, player->getLocation());
       if (!targetItem) {
-	return Impl::findItem(_object, Game::g_player)
+	return Impl::findItem(_object, player)
 	  ? Narration::you_already_own(_object.str())
 	  : Narration::there_is_no(_object.str());
       }
-
+      
+      if (not targetItem->portable()) {
+	return Narration::not_portable(_object.str());
+      }
+      
       auto [result, str] = targetItem->checkTakeCondition();
       if (result) {
 	targetItem->clearTakeCondition();
-	Game::g_player->getLocation()->removeItem(targetItem);
-	Game::g_player->addItem(targetItem);
+	player->getLocation()->removeItem(targetItem);
+	player->addItem(targetItem);
 	return (not str.empty())
 	  ? str
 	  : Narration::you_took(_object.str());
@@ -95,11 +100,11 @@ std::string Take::exec() const {
   }
   else {
     try {
-      auto enclosingItem = Impl::findItem(_prepObject, Game::g_player, Game::g_player->getLocation());
+      Item *enclosingItem = Impl::findItem(_prepObject, player, player->getLocation());
       if (!enclosingItem) return Narration::there_is_no(_prepObject.str());
 
       try {
-	auto targetItem = Impl::findItem(_object, enclosingItem);
+	Item *targetItem = Impl::findItem(_object, enclosingItem);
 	if (!targetItem)
 	  return Narration::does_not_contain(_prepObject.str(), _object.str());
 
@@ -107,7 +112,7 @@ std::string Take::exec() const {
 	if (result) {
 	  targetItem->clearTakeCondition(); // TODO: add "persistent" field to condition -> determines if cleared after success
 	  enclosingItem->removeItem(targetItem);
-	  Game::g_player->addItem(targetItem);
+	  player->addItem(targetItem);
 
 	  return (not str.empty())
 	    ? str
@@ -138,14 +143,15 @@ Drop::Drop(ItemDescriptor const &object):
 std::string Drop::exec() const {
   assert(not _object.noun.empty() && "_object should have a value");
 
+  Player *player = Game::g_objectManager.player();
   try {
-    auto targetItem = Impl::findItem(_object, Game::g_player);
+    auto targetItem = Impl::findItem(_object, player);
     if (!targetItem) {
       return Narration::you_do_not_own(_object.str());
     }
     else {
-      Game::g_player->removeItem(targetItem);
-      Game::g_player->getLocation()->addItem(targetItem);
+      player->removeItem(targetItem);
+      player->getLocation()->addItem(targetItem);
       return Narration::you_dropped(_object.str());
     }
   }
@@ -163,7 +169,8 @@ std::string Inspect::exec() const {
   assert(not _object.noun.empty() && "_object should have a value");
 
   try {
-    auto targetItem = Impl::findItem(_object, Game::g_player, Game::g_player->getLocation());
+    Player *player = Game::g_objectManager.player();
+    Item *targetItem = Impl::findItem(_object, player, player->getLocation());
     return targetItem
       ? targetItem->inspect()
       : Narration::there_is_no(_object.str());
@@ -175,11 +182,11 @@ std::string Inspect::exec() const {
 }
 
 std::string ShowInventory::exec() const {
-  auto const &items  = Game::g_player->items();
-  if (items.empty()) return Narration::empty_inventory();
+  Player *player = Game::g_objectManager.player();
+  if (player->items().empty()) return Narration::empty_inventory();
   
   std::vector<std::string> itemLabels;
-  for (auto const &item: items) {
+  for (Item *item: player->items()) {
     itemLabels.push_back(item->label());
   }
   return Narration::list_items("inventory", itemLabels);

@@ -1,26 +1,31 @@
 #ifndef ITEM_H
 #define ITEM_H
+
+#include <memory>
+#include <utility>
+#include <string>
+#include <vector>
+#include "json_fwd.hpp"
+
 #include "zobject.h"
-#include "condition.h"
+class Condition;
 
 struct ItemDescriptor {
   std::string noun;
   std::vector<std::string> adjectives;
-
   std::string str() const;
-
 };
 
 class Item: public ZObject {
-  bool _common;
+  bool const _common;
   bool _portable;
   double _weight;
-  size_t _takeConditionIndex;
+  std::shared_ptr<Condition> _takeCondition;
   std::vector<std::string> _adjectives;
 
 public:
-  Item(ZObject const &zObj, bool common, bool portable, double weight,
-       size_t conditionIndex, std::vector<std::string> const &adjectives);
+  Item(ZObject &&parent, bool common, bool portable, double weight, std::shared_ptr<Condition> cond,
+       std::vector<std::string> const &adjectives);
 
   bool common() const;
   bool portable() const;
@@ -31,18 +36,15 @@ public:
   std::pair<bool, std::string> checkTakeCondition() const;
   void clearTakeCondition();
 
-  static std::shared_ptr<Item> construct(std::string const &id, bool common, JSONObject const &obj);
-  void to_json(json &jsonObj) const;
-  bool restore(json const &jsonObj);
+  static std::unique_ptr<Item> construct(std::string const &id, nlohmann::json const &obj);
+  
+  void to_json(nlohmann::json &jsonObj) const;
+  bool restore(nlohmann::json const &jsonObj);
 };
 
-inline void to_json(json &jsonObj, Item const &item) {
-  item.to_json(jsonObj);
-}
+void to_json(nlohmann::json &jsonObj, Item const &item);
+void to_json(nlohmann::json &jsonObj, std::shared_ptr<Item> const &item);
 
-inline void to_json(json &jsonObj, std::shared_ptr<Item> item) {
-  jsonObj = item->id();
-}
 
 
 

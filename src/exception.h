@@ -13,55 +13,52 @@ namespace Exception {
   };
 
   struct JSONFormatError  {
-    std::string _filename;
     std::string _trace;
     
-    JSONFormatError(std::filesystem::path const &path, std::string const &trace):
-      _filename(path.filename()),
+    JSONFormatError(std::string const &trace):
       _trace(trace)
     {}
     
     virtual std::string what() const {
       std::ostringstream out;
-      out << "ERROR: in file '" << _filename << "', object '" << _trace << "'\n->  " << this->what();
+      out << "ERROR: " << _trace << "'\n->  " << this->what();
       return out.str();
     }
   };
   
   struct ErrorOpeningFile: public ExceptionBase {
-    std::string msg;
-    ErrorOpeningFile(std::string const &filename) {
-      msg = "Could not open file: \'" + filename + "\'";
-    }
+    std::string _filename;
+    ErrorOpeningFile(std::string const &fname):
+      _filename(fname)
+    {}
     
     virtual std::string what() const override {
-      return msg;
+      return "Could not open file: \'" + _filename + "\'";
     }
   };
 
   struct UndefinedReference: public JSONFormatError {
-    std::string msg;
-    UndefinedReference(std::string const &path, std::string const &trace, std::string const &id):
-      JSONFormatError(path, trace)
-    {
-      msg = "Undefined reference to ID '" + id + "'.";
-    }
+    std::string _id;
+
+    UndefinedReference(std::string const &trace, std::string const &id):
+      JSONFormatError(trace),
+      _id(id)
+    {}
     
     virtual std::string what() const override {
-      return msg;
+      return "Undefined reference to ID '" + _id + "'.";
     }
   };
 
   struct MultipleDefinitions: public JSONFormatError {
-    std::string msg;
-    MultipleDefinitions(std::string const &path, std::string const &trace, std::string const &id):
-      JSONFormatError(path, trace)
-    {
-      msg = "Multiple defefinitions of ID '" + id + "'.";
-    }
+    std::string _id;
+    MultipleDefinitions(std::string const &trace, std::string const &id):
+      JSONFormatError(trace),
+      _id(id)
+    {}
     
     virtual std::string what() const override {
-      return msg;
+      return "Multiple defefinitions of ID '" + _id + "'.";
     }
   };
   
@@ -69,8 +66,8 @@ namespace Exception {
     std::string msg;
 
     template <typename ... Args>
-    SpecificFormatError(std::string const &path, std::string const &trace, Args&& ... args):
-      JSONFormatError(path, trace)
+    SpecificFormatError(std::string const &trace, Args&& ... args):
+      JSONFormatError(trace)
     {
       std::ostringstream out;
       (out << ... << std::forward<Args>(args));
@@ -83,46 +80,45 @@ namespace Exception {
   };
 
   struct ExpectedField: public JSONFormatError {
-    std::string msg;
+    std::string _key;
     
-    ExpectedField(std::string const &path, std::string const &trace, std::string const &key):
-      JSONFormatError(path, trace)
-    {
-      msg = "Expected key '" + key + "'.";
-    }
-
+    ExpectedField(std::string const &trace, std::string const &key):
+      JSONFormatError(trace),
+      _key(key)
+    {}
+    
     virtual std::string what() const override {
-      return msg;
+      return "Expected key '" + _key + "'.";
     }
   };
 
   struct InvalidFieldType: public JSONFormatError {
-    std::string msg;
+    std::string _key, _expected, _supplied;
 
-    InvalidFieldType(std::string const &path, std::string const &trace, std::string const &key,
+    InvalidFieldType(std::string const &trace, std::string const &key,
 		     std::string const &expected, std::string const &supplied):
-      JSONFormatError(path, trace)
-    {
-      msg = "Expected type '" + expected + "' but got '" + supplied + "' in field '" + key + "'.";
-    }
+      JSONFormatError(trace),
+      _key(key),
+      _expected(expected),
+      _supplied(supplied)
+    {}
 
     virtual std::string what() const override {
-      return msg;
+      return "Expected type '" + _expected + "' but got '" + _supplied + "' in field '" + _key + "'.";
     }
   };
 
   struct DoubleConnectedLocation: public JSONFormatError {
-    std::string msg;
+    std::string _from, _to;
     
-    DoubleConnectedLocation(std::string const &path, std::string const &trace,
-			    std::string const &from, std::string const &to):
-      JSONFormatError(path, trace)
-    {
-      msg = "Location '" + from + "' was already connected to location '" + to + "'.";
-    }
-
+    DoubleConnectedLocation(std::string const &trace,std::string const &from, std::string const &to):
+      JSONFormatError(trace),
+      _from(from),
+      _to(to)
+    {}
+    
     virtual std::string what() const override {
-      return msg;
+      return "Location '" + _from + "' was already connected to location '" + _to + "'.";
     }
   };
 

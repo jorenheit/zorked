@@ -1,35 +1,47 @@
+#include <iostream>
 #include "player.h"
 #include "item.h"
+#include "condition.h"
+#include "json.hpp"
 
-std::shared_ptr<Player> Player::construct(JSONObject const &jsonObj) {
-  auto ptr = ZObject::construct("player", jsonObj);
-  double health = jsonObj.getOrDefault<double>("health", 100);
-  
-  return std::make_shared<Player>(*ptr, health);
+using json = nlohmann::json;
+
+
+std::unique_ptr<Player> Player::construct(json const &obj) {
+  std::unique_ptr<ZObject> zObj = ZObject::construct("player", obj);
+  auto health = obj.at("health").get<double>();
+  return std::make_unique<Player>(std::move(*zObj), health);
 }
 
-Player::Player(ZObject const &zObj, double health):
-  ZObject(zObj),
+Player::Player(ZObject &&parent, double health):
+  ZObject(std::move(parent)),
   _health(health)
 {}
 
-void Player::setLocation(std::shared_ptr<Location> loc) {
+void Player::setLocation(Location *loc) {
+  assert(loc);
   _location = loc;
 }
 
-std::shared_ptr<Location> Player::getLocation() const {
+Location *Player::getLocation() const {
   return _location;
 }
 
 void Player::to_json(json &jsonObj) const {
-  jsonObj = json {
-    {"health", _health},
-    {"items", ZObject::items()},
-    {"state", ZObject::state()}
-  };
+  std::cerr << "TODO: implement Player::to_json\n";
+  std::exit(1);
+  // jsonObj = json {
+  //   {"health", _health},
+  //   {"items", ZObject::items()},
+  //   {"state", ZObject::state()}
+  // };
 }
 
 bool Player::restore(json const &jsonObj) {
-  _health = jsonObj.at("health");
-  return ZObject::restore(jsonObj);
+  std::cerr << "TODO: implement Player::restore()\n";
+  std::exit(1);
+  
+  // _health = jsonObj.at("health");
+  // return ZObject::restore(jsonObj);
+  return false;
 }

@@ -1,6 +1,15 @@
 #include "util.h"
+#include "zobject.h"
+#include "item.h"
 #include "condition.h"
 #include "game.h"
+#include "exception.h"
+
+#define OBJECTMANAGER_IMPLEMENTATION
+#include "objectmanager.h"
+
+#include "json.hpp"
+using json = nlohmann::json;
 
 // Default condition: always returns true
 Condition::Condition(std::string const &msg):
@@ -13,13 +22,13 @@ Condition::Condition(std::string const &msg):
 }
 
 // Condition to check if a target object contains some item
-Condition::Condition(ComparisonType comp, std::shared_ptr<ZObject> target, std::shared_ptr<Item> item, size_t value,
+Condition::Condition(ComparisonType comp, ObjectPointer target, ObjectPointer item, size_t value,
 		     std::string const &failMsg, std::string const &successMsg):
   _fail(failMsg),
   _success(successMsg)
 {
   _check = [=]() -> bool {
-    size_t count = target->contains(item);
+    size_t count = target->contains(item.get<Item*>());
     switch (comp) {
     case Equal: return (count == value);
     case Greater: return (count > value);
@@ -33,7 +42,7 @@ Condition::Condition(ComparisonType comp, std::shared_ptr<ZObject> target, std::
 }
 
 // Condition to check if a target has a state-string set to some value
-Condition::Condition(std::shared_ptr<ZObject> target, std::string const &state, bool value,
+Condition::Condition(ObjectPointer target, std::string const &state, bool value,
 		     std::string const &failMsg, std::string const &successMsg):
   _fail(failMsg),
   _success(successMsg),
@@ -45,13 +54,17 @@ Condition::Condition(std::shared_ptr<ZObject> target, std::string const &state, 
 }
 
 // Compound conditions, strung together by AND or OR.
-Condition::Condition(LogicType op, std::vector<std::shared_ptr<Condition>> const &operands,
+Condition::Condition(LogicType op, std::vector<std::unique_ptr<Condition>> &&operands_,
 		     std::string const &failMsg, std::string const &successMsg):
   _fail(failMsg),
   _success(successMsg),
   _empty(false)
 {
-  _check = [=]() -> bool {
+  std::vector<std::shared_ptr<Condition>> operands;
+  for (auto &ptr: operands_)
+    operands.push_back(std::move(ptr));
+  
+  _check = [op, operands]() -> bool {
     static std::function<bool(bool,bool)> logicFunc[] = {
       /* And */ [](bool a, bool b) { return a && b; },
       /* Or  */ [](bool a, bool b) { return a || b; },
@@ -71,86 +84,95 @@ void Condition::clear() {
   _empty = true;
 }
   
-std::shared_ptr<Condition> Condition::construct(JSONObject const &condObj) {
+std::unique_ptr<Condition> Condition::construct(json const &obj, std::string path) {
   // The conditional node is either:
   // 1. A key/value pair 
   // 2. A logical expression composed of an operator and multiple other nodes
-  auto fail = condObj.getOrDefault<std::string>("fail");
-  auto success = condObj.getOrDefault<std::string>("success");
+
+  auto fail    = path.empty() ? obj.at("fail").get<std::string>() : "";
+  auto success = path.empty() ? obj.at("success").get<std::string>() : "";
+
+  if (path.empty())
+    path = obj.at("_path").get<std::string>();
   
-  std::vector<std::shared_ptr<Condition>> result;
-  for (auto const &[key, value]: condObj) {
+  std::vector<std::unique_ptr<Condition>> result;
+  for (auto const &[key, value]: obj.items()) {
+    if (key == "_path") continue;
     if (key == "fail") continue;
     if (key == "success") continue;
-    
+
+
     LogicType op = logicOperatorFromString(key);
     if (op != NumOp) {
-      std::vector<std::shared_ptr<Condition>> array;
-      for (auto const &[idx, jsonObj]: value) {
-	array.push_back(Condition::construct(jsonObj));
+      std::vector<std::unique_ptr<Condition>> array;
+      for (json const &childNode: value) {
+	array.emplace_back(Condition::construct(childNode, path + "::" + key));
       }
-      result.emplace_back(std::make_shared<Condition>(op, array));
+      result.emplace_back(std::make_unique<Condition>(op, std::move(array)));
       continue;
     }
 
     // We need to parse the key-string to find the condition
     std::vector<std::string> vec = split(key, '.');
     if (vec.size() != 3) {
-      throw Exception::SpecificFormatError(value.path(), value.trace(),
+      throw Exception::SpecificFormatError(path,
 					   "Conditional expression must be of the form '[object].[is/has].[state/object]'.");
     }
 
-    std::shared_ptr<ZObject> zObj = Game::objectByID(vec[0]);
+    ObjectPointer zObj = Game::g_objectManager.get(vec[0]);
     if (not zObj) {
-      throw Exception::UndefinedReference(value.path(), value.trace(), vec[0]);
+      throw Exception::UndefinedReference(path, vec[0]);
     }
       
     if (vec[1] == "is") {
-      result.emplace_back(std::make_shared<Condition>(zObj, vec[2], value.get<bool>()));
+      if (!value.is_boolean()) {
+	throw Exception::InvalidFieldType(path, key, "boolean", value.type_name());
+      }
+      result.emplace_back(std::make_unique<Condition>(zObj, vec[2], value.get<bool>()));
       continue;
     }
 
     if (vec[1] == "has") {
-      std::shared_ptr<Item> zObj2 = std::static_pointer_cast<Item>(Game::objectByID(vec[2]));
+      ObjectPointer zObj2 = Game::g_objectManager.get(vec[2], ObjectType::LocalItem, ObjectType::CommonItem);
       if (!zObj2) {
-	throw Exception::UndefinedReference(value.path(), value.trace(), vec[2]);
+	throw Exception::UndefinedReference(path, vec[2]);
       }
 
       if (value.is_boolean()) {
-	result.emplace_back(std::make_shared<Condition>(value.get<bool>() ? Greater : Equal, zObj, zObj2, 0));
+	result.emplace_back(std::make_unique<Condition>(value.get<bool>() ? Greater : Equal, zObj, zObj2, 0));
 	continue;
       }
 
       if (value.is_number()) {
-	result.emplace_back(std::make_shared<Condition>(GreaterOrEqual, zObj, zObj2, value.get<size_t>()));
+	result.emplace_back(std::make_unique<Condition>(GreaterOrEqual, zObj, zObj2, value.get<size_t>()));
 	continue;
       }
       
       if (value.is_object()) {
-	auto count = value.get<size_t>("value");
-	auto compStr = value.get<std::string>("comparison");
+	auto count = value.at("value").get<size_t>();
+	auto compStr = value.at("comparison").get<std::string>();
 	ComparisonType comp = comparisonOperatorFromString(compStr);
 	  
 	if (comp == NumComp) {
-	  throw Exception::SpecificFormatError(value.path(), value.trace(),
+	  throw Exception::SpecificFormatError(path, 
 					       "Invalid comparison operator '", compStr, "'; must be one of {=,<,>,<=,>=,!=}.");
 	}
-	result.emplace_back(std::make_shared<Condition>(comp, zObj, zObj2, count));
+	result.emplace_back(std::make_unique<Condition>(comp, zObj, zObj2, count));
 	continue;
       }
 
-      throw Exception::SpecificFormatError(value.path(), value.trace(),
+      throw Exception::SpecificFormatError(path,
 					   "Value of condition '", key, "' must be either boolean, integer or "
 					   "an object containing a 'value' and 'comparison' field.");
     }
 
-    throw Exception::SpecificFormatError(value.path(), value.trace(),
+    throw Exception::SpecificFormatError(value.at("_path"),
 					 "Condition may only contain 'is' or 'has', got '", vec[1], "'.");
   }
 
   return result.empty()
-    ? std::make_shared<Condition>(success)
-    : std::make_shared<Condition>(And, result, fail, success);
+    ? std::make_unique<Condition>(success)
+    : std::make_unique<Condition>(And, std::move(result), fail, success);
 }
 
 static constexpr std::string const comparisonOperatorStrings[Condition::NumComp] = {
@@ -191,26 +213,5 @@ Condition::LogicType Condition::logicOperatorFromString(std::string const &str) 
 
 std::string Condition::logicOperatorToString(LogicType op) {
   return logicOperatorStrings[op];
-}
-
-
-size_t ConditionManager::add(JSONObject const &obj) {
-  assert(not _initialized && "Calling add after process");
-  _conditionProxies.push_back(obj);
-  return _conditionProxies.size() - 1;
-}
-
-Condition &ConditionManager::get(size_t index) {
-  assert(_initialized && "Calling get before process.");
-  assert(index < _conditions.size() && "index out of bounds");
-  return *_conditions[index];
-}
-
-void ConditionManager::process() {
-  for (JSONObject const &jsonObj: _conditionProxies) {
-    auto ptr = Condition::construct(jsonObj);
-    _conditions.emplace_back(ptr);
-  }
-  _initialized = true;
 }
 
