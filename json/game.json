@@ -1,7 +1,7 @@
 {
     "files": {
 	"dictionary": "dict.json",
-	"items": "items.json",
+	"common": "common.json",
 	"locations": "loc.json",
 	"world": "world.json",
 	"player": "player.json",

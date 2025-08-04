@@ -9,15 +9,20 @@
 #include "direction.h"
 #include "item.h"
 
+class Player;
 
 struct Action {
   virtual ~Action() = default;
   virtual std::string exec() const = 0;
 };
 
+struct Nop: public Action {
+  virtual std::string exec() const override;
+};
+
 struct Move: public Action {
   Direction _dir = NumDir;
-  Move(Direction dir);
+  inline Move(Direction dir): _dir(dir) {}
   virtual std::string exec() const override;
 };
 
@@ -26,21 +31,23 @@ struct Take: public Action {
   ItemDescriptor _object;
   ItemDescriptor _prepObject;
   
-  Take(ItemDescriptor const &object, ItemDescriptor const &prepObject = {});
+  inline Take(ItemDescriptor const &object, ItemDescriptor const &prepObject = {}):
+    _object(object), _prepObject(prepObject)
+  {}
   virtual std::string exec() const override;
 };
 
 struct Drop: public Action {
   ItemDescriptor _object;
   
-  Drop(ItemDescriptor const &object);
+  inline Drop(ItemDescriptor const &object): _object(object) {}
   virtual std::string exec() const override;
 };
 
 struct Inspect: public Action {
   ItemDescriptor _object;
   
-  Inspect(ItemDescriptor const &object);
+  inline Inspect(ItemDescriptor const &object): _object(object) {}
   virtual std::string exec() const override;
 };
 

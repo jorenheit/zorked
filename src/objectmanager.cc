@@ -8,8 +8,7 @@
 #include "player.h"
 #include "item.h"
 
-//#include "objectmanager.tpp"
-
+// TODO: better assertions
 
 ObjectPointer::ObjectPointer(std::nullptr_t):
   _obj(nullptr),
@@ -56,13 +55,12 @@ ZObject const *ObjectPointer::operator->() const {
 }
 
 bool ObjectPointer::operator==(ObjectPointer const &other) const {
-  return (_manager == other._manager) && (_index == other._index);
+  return (_obj == other._obj) || (_manager == other._manager && _index == other._index);
 }
 
 bool ObjectPointer::operator!=(ObjectPointer const &other) const {
   return !(*this == other);
 }
-
 
 void ObjectManager::setPlayer(nlohmann::json const &obj) {
   assert(!_initialized);
@@ -133,9 +131,8 @@ ObjectPointer ObjectManager::get(std::string const &id, ObjectType type) {
 }
 
 namespace {
-  // Helper function for ObjectManager::build
   using json = nlohmann::json;
-  
+  // Helper function for ObjectManager::build
   void connectLocations(ObjectManager *self, json const &connections) {
     for (json const &conn: connections) {
       std::string const &fromID = conn.at("from");
@@ -174,11 +171,6 @@ void ObjectManager::build() {
   assert(not _initialized);
 
   _player = Player::construct(_playerData);
-  _locationManager.constructAll();
-  _localItemManager.constructAll();
-  _commonItemManager.constructAll();
-  
-
   _player->setLocation(this->get(_startLocation, ObjectType::Location).get<Location*>());
   connectLocations(this, _connections);
   

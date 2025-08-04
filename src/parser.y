@@ -41,7 +41,7 @@
 %%
 
 input:
-    END          { setResult(nullptr); YYACCEPT; }
+    END          { setResult(std::make_unique<Nop>()); YYACCEPT; }
   | command END  { setResult(std::move($1)); YYACCEPT; }
 
 command:

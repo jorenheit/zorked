@@ -28,7 +28,7 @@ std::unique_ptr<ZObject> ZObject::construct(std::string const &id, json const &o
 
   std::vector<Item*> items;
   for (std::string const &id: itemIDs) {
-    ObjectPointer ptr = Game::g_objectManager.get(id, ObjectType::LocalItem, ObjectType::CommonItem);
+    ObjectPointer ptr = Global::g_objectManager.get(id, ObjectType::LocalItem, ObjectType::CommonItem);
     if (!ptr) throw Exception::UndefinedReference(obj.at("_path"), id);
     items.push_back(ptr.get<Item*>()); // Will construct the object from its proxy if necessary
   }
@@ -121,13 +121,13 @@ std::string ZObject::inspect() {
 }
 
 bool ZObject::restore(json const &obj) {
-  _items.clear();
+  // _items.clear();
 
-  for (std::string const &id: obj.at("items").get<std::vector<std::string>>()) {
-    ObjectPointer ptr = Game::g_objectManager.get(id, ObjectType::CommonItem, ObjectType::LocalItem);
-    if (ptr) addItem(ptr.get<Item*>());
-    else return false;
-  }
-  _state = obj.at("state");
+  // for (std::string const &id: obj.at("items").get<std::vector<std::string>>()) {
+  //   ObjectPointer ptr = Global::g_objectManager.get(id, ObjectType::CommonItem, ObjectType::LocalItem);
+  //   if (ptr) addItem(ptr.get<Item*>());
+  //   else return false;
+  // }
+  // _state = obj.at("state");
   return true;
 }

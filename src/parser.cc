@@ -1,7 +1,6 @@
 #include "parser.h"
 #include "util.h"
 
-// TODO: make Parser a static object within yylex
 namespace Impl {
   Parser *parser = nullptr;
 }
@@ -44,25 +43,25 @@ ParserBase::symbol_type Parser::yylex() {
   
   Dictionary::Entry const &token = _tokens[_pos++];
   switch (token.type) {
-  case WordType::Unknown: return ParserBase::make_UNKNOWN(token.str);
-  case WordType::Direction: return ParserBase::make_DIRECTION(token.str);
+  case WordType::Unknown:		return ParserBase::make_UNKNOWN(token.str);
+  case WordType::Direction:		return ParserBase::make_DIRECTION(token.str);
   case WordType::Number: assert(false && "todo: numbers"); 
-  case WordType::Verb: return ParserBase::make_VERB(token.str);
-  case WordType::Noun: return ParserBase::make_NOUN(token.str);
+  case WordType::Verb:			return ParserBase::make_VERB(token.str);
+  case WordType::Noun:			return ParserBase::make_NOUN(token.str);
   case WordType::Preposition: {
-    if (token.str == "from") return ParserBase::make_FROM();
+    if (token.str == "from")		return ParserBase::make_FROM();
     UNREACHABLE("unimplemented preposition");
   }
-  case WordType::Adjective: return ParserBase::make_ADJECTIVE(token.str);
-  case WordType::Article: return ParserBase::make_ARTICLE();
+  case WordType::Adjective:		return ParserBase::make_ADJECTIVE(token.str);
+  case WordType::Article:		return ParserBase::make_ARTICLE();
   case WordType::BuiltinCommand: {
-    if (token.str == "move") return ParserBase::make_MOVE();
-    if (token.str == "take") return ParserBase::make_TAKE();
-    if (token.str == "drop") return ParserBase::make_DROP();
-    if (token.str == "inventory") return ParserBase::make_INV();
-    if (token.str == "inspect") return ParserBase::make_INSPECT();
-    if (token.str == "save") return ParserBase::make_SAVE();
-    if (token.str == "load") return ParserBase::make_LOAD();
+    if (token.str == "move")		return ParserBase::make_MOVE();
+    if (token.str == "take")		return ParserBase::make_TAKE();
+    if (token.str == "drop")		return ParserBase::make_DROP();
+    if (token.str == "inventory")	return ParserBase::make_INV();
+    if (token.str == "inspect")		return ParserBase::make_INSPECT();
+    if (token.str == "save")		return ParserBase::make_SAVE();
+    if (token.str == "load")		return ParserBase::make_LOAD();
     UNREACHABLE("unimplemented command");
   }
   default: UNREACHABLE("default");

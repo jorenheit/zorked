@@ -630,7 +630,7 @@ namespace yy {
             {
   case 2: // input: END
 #line 44 "parser.y"
-                 { setResult(nullptr); YYACCEPT; }
+                 { setResult(std::make_unique<Nop>()); YYACCEPT; }
 #line 635 "parserbase.cc"
     break;
 

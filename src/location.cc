@@ -1,4 +1,6 @@
 #include "location.h"
+#include "item.h"
+#include "player.h"
 #include "game.h"
 #include "util.h"
 #include "condition.h"

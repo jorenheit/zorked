@@ -108,6 +108,22 @@ namespace Exception {
     }
   };
 
+  struct InvalidArrayType: public JSONFormatError {
+    std::string _key, _expected, _supplied;
+
+    InvalidArrayType(std::string const &trace, std::string const &key,
+		     std::string const &expected, std::string const &supplied):
+      JSONFormatError(trace),
+      _key(key),
+      _expected(expected),
+      _supplied(supplied)
+    {}
+
+    virtual std::string what() const override {
+      return "Expected type '" + _expected + "' but got '" + _supplied + "' in array '" + _key + "'.";
+    }
+  };
+  
   struct DoubleConnectedLocation: public JSONFormatError {
     std::string _from, _to;
     

@@ -6,30 +6,8 @@
 #include "condition.h"
 #include "narration.h"
 #include "dictionary.h"
-
-#define OBJECTMANAGER_IMPLEMENTATION
 #include "objectmanager.h"
 
-Move::Move(Direction dir):
-  _dir(dir)
-{}
-
-std::string Move::exec() const {
-  assert(_dir != NumDir && "dir should be valid here");
-
-  Player *player = Game::g_objectManager.player();
-  auto const &[location, condition] = player->getLocation()->connection(_dir);
-
-  if (not location) {
-    return Narration::cannot_go_there(directionToString(_dir));
-  }
-  if (not condition->eval())
-    return condition->failString();
-  
-  location->clearMoveCondition(_dir);
-  player->setLocation(location);
-  return condition->successString();
-}
 
 namespace Impl {
   struct MultipleItemsByThatNoun {};
@@ -56,16 +34,31 @@ namespace Impl {
 } // namespace Impl
 
 
-Take::Take(ItemDescriptor const &object, ItemDescriptor const &prepObject):
-  _object(object),
-  _prepObject(prepObject)
-{}
+std::string Nop::exec() const {
+  return "";
+}
 
+std::string Move::exec() const {
+  assert(_dir != NumDir && "dir should be valid here");
+
+  Player *player = Global::g_objectManager.player();
+  auto const &[location, condition] = player->getLocation()->connection(_dir);
+
+  if (not location) {
+    return Narration::cannot_go_there(directionToString(_dir));
+  }
+  if (not condition->eval())
+    return condition->failString();
+  
+  location->clearMoveCondition(_dir);
+  player->setLocation(location);
+  return condition->successString();
+}
 
 std::string Take::exec() const {
   assert(not _object.noun.empty() && "_object should have a value");
 
-  Player *player = Game::g_objectManager.player();
+  Player *player = Global::g_objectManager.player();
   if (_prepObject.noun.empty()) {
     try {
       auto targetItem = Impl::findItem(_object, player->getLocation());
@@ -136,14 +129,10 @@ std::string Take::exec() const {
 }
 
 
-Drop::Drop(ItemDescriptor const &object):
-  _object(object)
-{}
-
 std::string Drop::exec() const {
   assert(not _object.noun.empty() && "_object should have a value");
+  Player *player = Global::g_objectManager.player();
 
-  Player *player = Game::g_objectManager.player();
   try {
     auto targetItem = Impl::findItem(_object, player);
     if (!targetItem) {
@@ -161,15 +150,11 @@ std::string Drop::exec() const {
   UNREACHABLE();
 }
 
-Inspect::Inspect(ItemDescriptor const &object):
-  _object(object)
-{}
-
 std::string Inspect::exec() const {
   assert(not _object.noun.empty() && "_object should have a value");
+  Player *player = Global::g_objectManager.player();
 
   try {
-    Player *player = Game::g_objectManager.player();
     Item *targetItem = Impl::findItem(_object, player, player->getLocation());
     return targetItem
       ? targetItem->inspect()
@@ -182,7 +167,8 @@ std::string Inspect::exec() const {
 }
 
 std::string ShowInventory::exec() const {
-  Player *player = Game::g_objectManager.player();
+  Player *player = Global::g_objectManager.player();
+  
   if (player->items().empty()) return Narration::empty_inventory();
   
   std::vector<std::string> itemLabels;

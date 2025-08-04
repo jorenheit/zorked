@@ -1,29 +1,27 @@
 {
-    "player": {
-	"label": "Jason",
-	"description": "It's you.",
-	"health": 100.0,
-	"state": {
-	    "alive": true,
-	    "dead": false
+    "label": "Jason",
+    "description": "It's you.",
+    "health": 100.0,
+    "state": {
+	"alive": true,
+	"dead": false
+    },
+    "items": {
+	"key3": {
+	    "label": "Key",
+	    "nouns": ["key"],
+	    "adjectives": ["weird"],
+	    "description": "Weird key",
+	    "portable": true,
+	    "weight": 1.0
 	},
-	"items": {
-	    "key3": {
-		"label": "Key",
-		"nouns": ["key"],
-		"adjectives": ["weird"],
-		"description": "Weird key",
-		"portable": true,
-		"weight": 1.0
-	    },
-	    
-	    "note": {
-		"label": "Note",
-		"description": "A folded up note. It says: \"Don't forget! xoxo Mom\".",
-		"portable": true,
-		"weight": 0.0,
-		"inspect": "You open up the note. It says: \"You need to clean the house today. Do it this time or else!\""
-	    }
+	
+	"note": {
+	    "label": "Note",
+	    "description": "A folded up note. It says: \"Don't forget! xoxo Mom\".",
+	    "portable": true,
+	    "weight": 0.0,
+	    "inspect": "You open up the note. It says: \"You need to clean the house today. Do it this time or else!\""
 	}
     }
 }

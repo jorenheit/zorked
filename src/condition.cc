@@ -119,7 +119,7 @@ std::unique_ptr<Condition> Condition::construct(json const &obj, std::string pat
 					   "Conditional expression must be of the form '[object].[is/has].[state/object]'.");
     }
 
-    ObjectPointer zObj = Game::g_objectManager.get(vec[0]);
+    ObjectPointer zObj = Global::g_objectManager.get(vec[0]);
     if (not zObj) {
       throw Exception::UndefinedReference(path, vec[0]);
     }
@@ -133,7 +133,7 @@ std::unique_ptr<Condition> Condition::construct(json const &obj, std::string pat
     }
 
     if (vec[1] == "has") {
-      ObjectPointer zObj2 = Game::g_objectManager.get(vec[2], ObjectType::LocalItem, ObjectType::CommonItem);
+      ObjectPointer zObj2 = Global::g_objectManager.get(vec[2], ObjectType::LocalItem, ObjectType::CommonItem);
       if (!zObj2) {
 	throw Exception::UndefinedReference(path, vec[2]);
       }

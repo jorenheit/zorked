@@ -2,7 +2,8 @@
 #include "item.h"
 #include "game.h"
 #include "condition.h"
-
+#include "location.h"
+#include "player.h"
 #include "json.hpp" // TODO: move all construct implementations to seperate TU
 using json = nlohmann::json;
 

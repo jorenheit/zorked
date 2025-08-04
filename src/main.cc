@@ -1,5 +1,8 @@
 #include <iostream>
 #include "game.h"
+#include "player.h"
+#include "condition.h"
+#include "location.h"
 #include "exception.h"
 #include "util.h"
 
@@ -7,8 +10,8 @@
 
 int main() {
   try {
-    Game::load("../json/game.json");
-    Game::play();
+    Game game("../json/game.json");
+    game.play();
 
     
   } catch (Exception::ExceptionBase &ex) {

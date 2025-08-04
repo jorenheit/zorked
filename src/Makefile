@@ -17,15 +17,17 @@ CC_SRCS  := \
 	direction.cc \
 	dictionary.cc \
 	action.cc \
-	game.cc \
+	play.cc \
 	item.cc \
 	location.cc \
 	player.cc \
 	zobject.cc \
 	condition.cc \
-	preprocessor.cc \
+	load.cc \
+	save.cc \
 	objectmanager.cc \
-	parser.cc 
+	parser.cc \
+	globaldata.cc
 
 
 # Object files

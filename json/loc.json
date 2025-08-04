@@ -7,7 +7,7 @@
 		"label": "Bedroom Door",
 		"description": {
 		    "lore-condition": {
-			"door.is.locked": false,
+			"door.is.locked": true,
 			"success": "The north door seems to be locked.",
 			"fail": "The north door has been unlocked."
 		    }

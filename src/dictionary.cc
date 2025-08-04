@@ -6,17 +6,8 @@
 
 using json = nlohmann::json;
 
-namespace {
-  json parseEntireFile(std::filesystem::path const &filename) {
-    std::ifstream file(filename);
-    if (!file) {
-      throw Exception::ErrorOpeningFile(filename);
-    }
-    return json::parse(file);
-  }
-}
 
-Dictionary::Dictionary(std::string const &dictFilename) {
+Dictionary::Dictionary(json const &obj) {
   static std::pair<std::string, WordType> const sections[] {
     {"builtin-commands", WordType::BuiltinCommand},
     {"directions", WordType::Direction},
@@ -29,9 +20,8 @@ Dictionary::Dictionary(std::string const &dictFilename) {
   };
 
   using enum StringTransform;
-  json dict = parseEntireFile(dictFilename);
   for (auto &[sectionName, wordType]: sections) {
-    json sect = dict.at(sectionName);
+    json sect = obj.at(sectionName);
     for (auto const &[key_, value]: sect.items()) {
       std::string key = transformString<ToLower, RemoveSpaces>(key_);
       _dict[key] = Entry{ .str = key, .type = wordType };

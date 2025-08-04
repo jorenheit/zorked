@@ -4,6 +4,7 @@
 #include <map>
 #include <iostream>
 #include <vector>
+#include "json_fwd.hpp"
 
 enum class WordType {
   Unknown,
@@ -36,7 +37,7 @@ private:
   
 public:
   Dictionary() = default;
-  Dictionary(std::string const &dictFilename);  
+  Dictionary(nlohmann::json const &obj);  
   Entry operator[](std::string const &word) const;
   std::vector<Entry> tokenize(std::string input, size_t const ngramSize) const;
 

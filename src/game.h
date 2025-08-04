@@ -4,19 +4,28 @@
 #include <memory>
 #include <vector>
 
-class Dictionary;
-class ObjectManager;
+#include "parser.h"
+#include "objectmanager.h"
+#include "dictionary.h"
 
-namespace Game {
-
-  extern Dictionary g_dict;
+namespace Global {
   extern ObjectManager g_objectManager;
+  extern Dictionary    g_dict;
+}
 
-  void load(std::string const &rootFilename);
+class Game {
+public:
+  Game(std::string const &rootFilename) {
+    load(rootFilename);
+  }
+
   void play();
   void save(std::string const &saveFilename);
   void restore(std::string const &loadFilename);
 
-} // namespace Global
+private:
+  void load(std::string const &rootFilename);
+  
+};
 
 #endif //GLOBAL_H
