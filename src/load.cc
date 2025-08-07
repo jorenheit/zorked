@@ -64,6 +64,21 @@ namespace {
   void setPath(json &obj, std::string const &path) {
     obj["_path"] = path;
   }
+
+  void updateDictionary(std::vector<std::string> const &wordList) {
+    // We don't care if this is a list of nouns or verb. We just need to find entries
+    // that contain spaces, so the tokenizer can look for n-grams in the user-input
+    // that matches these compound expressions (that do not contain adjectives).
+
+    for (std::string const &word: wordList) {
+      if (word.find(' ') == std::string::npos) continue;
+      Global::g_dict.addPhrase(word);
+    }
+  }
+
+  void addProxy(std::string const &id, json const &obj, ObjectType type) {
+    Global::g_objectManager.addProxy(id, obj, type);
+  }
   
   void normalizeField(json &obj, std::string const &path, Field::Required const &field) {
     assert(obj.type() == json_t::object);
@@ -162,6 +177,8 @@ namespace {
       normalizeEffects(value["+"], currentPath);
       normalizeEffects(value["-"], currentPath);
       setPath(value, currentPath);
+
+      updateDictionary(value["verbs"].get<std::vector<std::string>>());
     }
   }
 
@@ -239,7 +256,9 @@ namespace {
       normalizeCommonItemReferences(value["common-items"], nestedPath);
       normalizeState(value["state"], nestedPath);
       setPath(value, nestedPath);
-      Global::g_objectManager.addProxy(key, value, ObjectType::LocalItem);
+
+      updateDictionary(value["nouns"].get<std::vector<std::string>>());
+      addProxy(key, value, ObjectType::LocalItem);
     }
     setPath(obj, currentPath);
   }
@@ -286,6 +305,8 @@ namespace {
     normalizeItems(obj["items"], path);
     normalizeCommonItemReferences(obj["common-items"], path);
     setPath(obj, path);
+
+    updateDictionary(obj["nouns"].get<std::vector<std::string>>());
     Global::g_objectManager.setPlayer(obj);
   }
 
@@ -323,7 +344,9 @@ namespace {
       normalizeItems(value["items"], nestedPath);
       normalizeCommonItemReferences(value["common-items"], nestedPath);
       setPath(value, nestedPath);
-      Global::g_objectManager.addProxy(key, value, ObjectType::CommonItem);
+      
+      updateDictionary(value["nouns"].get<std::vector<std::string>>());      
+      addProxy(key, value, ObjectType::CommonItem);
     }
     setPath(obj, path);
   }
@@ -351,7 +374,9 @@ namespace {
       normalizeCommonItemReferences(value["common-items"], nestedPath);
       normalizeInteractions(value["interactions"], nestedPath);
       setPath(value, nestedPath);
-      Global::g_objectManager.addProxy(key, value, ObjectType::Location);
+
+      updateDictionary(value["nouns"].get<std::vector<std::string>>());      
+      addProxy(key, value, ObjectType::Location);
     }
     setPath(obj, path);
   }
@@ -397,11 +422,11 @@ namespace {
 void Game::load(std::string const &rootFilename) {
   std::filesystem::path const rootPath(rootFilename);
   json root = parseEntireFile(rootPath);
+  process(initDictionary, root, rootPath, "dictionary");
   process(processPlayerFile, root, rootPath, "player");
   process(processCommonItemsFile, root, rootPath, "common");
   process(processLocationsFile, root, rootPath, "locations");
   process(processWorldFile, root, rootPath, "world");
-  process(initDictionary, root, rootPath, "dictionary");
   Global::g_objectManager.init();
 
 }

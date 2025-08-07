@@ -10,12 +10,15 @@
 #include "json.hpp"
 
 using json = nlohmann::json;
+using enum StringTransform;
 
 std::unique_ptr<ZObject> ZObject::construct(std::string const &id, json const &obj) {
   auto label = obj.at("label").get<std::string>();
   auto nouns = obj.at("nouns").get<std::vector<std::string>>();
-  if (nouns.empty())
-    nouns.push_back(id);
+  if (nouns.empty()) nouns.push_back(id);
+  for (std::string &str: nouns) {
+    str = transformString<ToLower, NormalizeSpaces, RemovePunctuation>(str);
+  }
 
   std::unique_ptr<Condition> loreCondition = Condition::construct(obj.at("description").at("lore-condition"));
   std::unique_ptr<Condition> inspectCondition = Condition::construct(obj.at("inspect").at("inspect-condition"));

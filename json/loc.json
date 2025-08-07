@@ -5,6 +5,7 @@
 	"description": "You are standing in a small living room. There is a door to the north and a door to the south.",
 	"items": {
 	    "door": {
+		"nouns": ["door", "bedroom door", "north door"],
 		"label": "Bedroom Door",
 		"description": {
 		    "lore-condition": {

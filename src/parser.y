@@ -22,14 +22,14 @@
 %token MOVE TAKE DROP INV INSPECT USE SAVE LOAD 
 %token FROM TO WITH
 %token <std::string> DIRECTION
-%token <std::string> VERB NOUN ADJECTIVE UNKNOWN
+%token <std::string> UNKNOWN
 %token ARTICLE
 %token END
 
 %type <ItemDescriptor>          object
 %type <std::string>             verb
 %type <ItemDescriptor>          object_without_article
-%type <std::string>             modifier
+%type <std::string>             adjective
 %type <Direction>               direction
 %type <std::unique_ptr<Action>> command
 %type <std::unique_ptr<Action>> move_command
@@ -99,8 +99,7 @@ direction:
 ;
 
 verb:
-    VERB      { $$ = $1; }
-  | UNKNOWN   { $$ = $1; }
+    UNKNOWN   { $$ = $1; }
 ;
 
 object:
@@ -109,15 +108,13 @@ object:
 ;
 
 object_without_article:
-    NOUN		{ $$.noun = $1; }
-  | UNKNOWN		{ $$.noun = $1; }
-  | modifier object {
+    UNKNOWN { $$.noun = $1; }
+  | adjective object_without_article {
       $$ = $2;
       $$.adjectives.push_back($1);
     }
 ;
 
-modifier:
-    ADJECTIVE  { $$ = $1; }
-  | UNKNOWN    { $$ = $1; }
+adjective:
+    UNKNOWN    { $$ = $1; }
 ;

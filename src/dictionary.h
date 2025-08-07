@@ -9,12 +9,10 @@
 enum class WordType {
   Unknown,
   BuiltinCommand,
+  Phrase,
   Direction,
   Number,
-  Verb,
-  Noun,
   Preposition,
-  Adjective,
   Article
 };
 
@@ -40,9 +38,8 @@ public:
   Dictionary(nlohmann::json const &obj);  
   Entry operator[](std::string const &word) const;
   std::vector<Entry> tokenize(std::string input, size_t const ngramSize) const;
-
-private:
-  Entry findEntry(std::vector<std::string> const &vec, size_t startIdx, size_t n) const;
+  void addPhrase(std::string const &phrase);
+  
 };
 
 inline std::ostream &operator<<(std::ostream &out, Dictionary::Entry const &entry) {

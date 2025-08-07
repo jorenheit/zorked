@@ -392,12 +392,9 @@ namespace yy {
       char dummy2[sizeof (ItemDescriptor)];
 
       // DIRECTION
-      // VERB
-      // NOUN
-      // ADJECTIVE
       // UNKNOWN
       // verb
-      // modifier
+      // adjective
       char dummy3[sizeof (std::string)];
 
       // command
@@ -462,12 +459,9 @@ namespace yy {
     TO = 267,                      // TO
     WITH = 268,                    // WITH
     DIRECTION = 269,               // DIRECTION
-    VERB = 270,                    // VERB
-    NOUN = 271,                    // NOUN
-    ADJECTIVE = 272,               // ADJECTIVE
-    UNKNOWN = 273,                 // UNKNOWN
-    ARTICLE = 274,                 // ARTICLE
-    END = 275                      // END
+    UNKNOWN = 270,                 // UNKNOWN
+    ARTICLE = 271,                 // ARTICLE
+    END = 272                      // END
       };
       /// Backward compatibility alias (Bison 3.6).
       typedef token_kind_type yytokentype;
@@ -484,7 +478,7 @@ namespace yy {
     {
       enum symbol_kind_type
       {
-        YYNTOKENS = 21, ///< Number of tokens.
+        YYNTOKENS = 18, ///< Number of tokens.
         S_YYEMPTY = -2,
         S_YYEOF = 0,                             // "end of file"
         S_YYerror = 1,                           // error
@@ -501,26 +495,23 @@ namespace yy {
         S_TO = 12,                               // TO
         S_WITH = 13,                             // WITH
         S_DIRECTION = 14,                        // DIRECTION
-        S_VERB = 15,                             // VERB
-        S_NOUN = 16,                             // NOUN
-        S_ADJECTIVE = 17,                        // ADJECTIVE
-        S_UNKNOWN = 18,                          // UNKNOWN
-        S_ARTICLE = 19,                          // ARTICLE
-        S_END = 20,                              // END
-        S_YYACCEPT = 21,                         // $accept
-        S_input = 22,                            // input
-        S_command = 23,                          // command
-        S_move_command = 24,                     // move_command
-        S_take_command = 25,                     // take_command
-        S_drop_command = 26,                     // drop_command
-        S_inventory_command = 27,                // inventory_command
-        S_inspect_command = 28,                  // inspect_command
-        S_interact_command = 29,                 // interact_command
-        S_direction = 30,                        // direction
-        S_verb = 31,                             // verb
-        S_object = 32,                           // object
-        S_object_without_article = 33,           // object_without_article
-        S_modifier = 34                          // modifier
+        S_UNKNOWN = 15,                          // UNKNOWN
+        S_ARTICLE = 16,                          // ARTICLE
+        S_END = 17,                              // END
+        S_YYACCEPT = 18,                         // $accept
+        S_input = 19,                            // input
+        S_command = 20,                          // command
+        S_move_command = 21,                     // move_command
+        S_take_command = 22,                     // take_command
+        S_drop_command = 23,                     // drop_command
+        S_inventory_command = 24,                // inventory_command
+        S_inspect_command = 25,                  // inspect_command
+        S_interact_command = 26,                 // interact_command
+        S_direction = 27,                        // direction
+        S_verb = 28,                             // verb
+        S_object = 29,                           // object
+        S_object_without_article = 30,           // object_without_article
+        S_adjective = 31                         // adjective
       };
     };
 
@@ -565,12 +556,9 @@ namespace yy {
         break;
 
       case symbol_kind::S_DIRECTION: // DIRECTION
-      case symbol_kind::S_VERB: // VERB
-      case symbol_kind::S_NOUN: // NOUN
-      case symbol_kind::S_ADJECTIVE: // ADJECTIVE
       case symbol_kind::S_UNKNOWN: // UNKNOWN
       case symbol_kind::S_verb: // verb
-      case symbol_kind::S_modifier: // modifier
+      case symbol_kind::S_adjective: // adjective
         value.move< std::string > (std::move (that.value));
         break;
 
@@ -686,12 +674,9 @@ switch (yykind)
         break;
 
       case symbol_kind::S_DIRECTION: // DIRECTION
-      case symbol_kind::S_VERB: // VERB
-      case symbol_kind::S_NOUN: // NOUN
-      case symbol_kind::S_ADJECTIVE: // ADJECTIVE
       case symbol_kind::S_UNKNOWN: // UNKNOWN
       case symbol_kind::S_verb: // verb
-      case symbol_kind::S_modifier: // modifier
+      case symbol_kind::S_adjective: // adjective
         value.template destroy< std::string > ();
         break;
 
@@ -1086,51 +1071,6 @@ switch (yykind)
 #if 201103L <= YY_CPLUSPLUS
       static
       symbol_type
-      make_VERB (std::string v)
-      {
-        return symbol_type (token::VERB, std::move (v));
-      }
-#else
-      static
-      symbol_type
-      make_VERB (const std::string& v)
-      {
-        return symbol_type (token::VERB, v);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_NOUN (std::string v)
-      {
-        return symbol_type (token::NOUN, std::move (v));
-      }
-#else
-      static
-      symbol_type
-      make_NOUN (const std::string& v)
-      {
-        return symbol_type (token::NOUN, v);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_ADJECTIVE (std::string v)
-      {
-        return symbol_type (token::ADJECTIVE, std::move (v));
-      }
-#else
-      static
-      symbol_type
-      make_ADJECTIVE (const std::string& v)
-      {
-        return symbol_type (token::ADJECTIVE, v);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
       make_UNKNOWN (std::string v)
       {
         return symbol_type (token::UNKNOWN, std::move (v));
@@ -1477,9 +1417,9 @@ switch (yykind)
     /// Constants.
     enum
     {
-      yylast_ = 46,     ///< Last index in yytable_.
+      yylast_ = 38,     ///< Last index in yytable_.
       yynnts_ = 14,  ///< Number of nonterminal symbols.
-      yyfinal_ = 35 ///< Termination state number.
+      yyfinal_ = 32 ///< Termination state number.
     };
 
 
@@ -1523,10 +1463,10 @@ switch (yykind)
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
        5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
-      15,    16,    17,    18,    19,    20
+      15,    16,    17
     };
     // Last valid token kind.
-    const int code_max = 275;
+    const int code_max = 272;
 
     if (t <= 0)
       return symbol_kind::S_YYEOF;
@@ -1554,12 +1494,9 @@ switch (yykind)
         break;
 
       case symbol_kind::S_DIRECTION: // DIRECTION
-      case symbol_kind::S_VERB: // VERB
-      case symbol_kind::S_NOUN: // NOUN
-      case symbol_kind::S_ADJECTIVE: // ADJECTIVE
       case symbol_kind::S_UNKNOWN: // UNKNOWN
       case symbol_kind::S_verb: // verb
-      case symbol_kind::S_modifier: // modifier
+      case symbol_kind::S_adjective: // adjective
         value.copy< std::string > (YY_MOVE (that.value));
         break;
 
@@ -1613,12 +1550,9 @@ switch (yykind)
         break;
 
       case symbol_kind::S_DIRECTION: // DIRECTION
-      case symbol_kind::S_VERB: // VERB
-      case symbol_kind::S_NOUN: // NOUN
-      case symbol_kind::S_ADJECTIVE: // ADJECTIVE
       case symbol_kind::S_UNKNOWN: // UNKNOWN
       case symbol_kind::S_verb: // verb
-      case symbol_kind::S_modifier: // modifier
+      case symbol_kind::S_adjective: // adjective
         value.move< std::string > (YY_MOVE (s.value));
         break;
 
@@ -1696,7 +1630,7 @@ switch (yykind)
 
 
 } // yy
-#line 1700 "parserbase.h"
+#line 1634 "parserbase.h"
 
 
 

@@ -5,6 +5,7 @@
 #include "json.hpp"
 
 using json = nlohmann::json;
+using enum StringTransform;
 
 
 Dictionary::Dictionary(json const &obj) {
@@ -12,55 +13,47 @@ Dictionary::Dictionary(json const &obj) {
     {"builtin-commands", WordType::BuiltinCommand},
     {"directions", WordType::Direction},
     {"numbers", WordType::Number},
-    {"verbs", WordType::Verb},
-    {"nouns", WordType::Noun},
     {"prepositions", WordType::Preposition},
-    {"adjectives", WordType::Adjective},
     {"articles", WordType::Article}
   };
 
-  using enum StringTransform;
+  // TODO: error handling (missing sections)
   for (auto &[sectionName, wordType]: sections) {
-    json sect = obj.at(sectionName);
-    for (auto const &[key_, value]: sect.items()) {
-      std::string key = transformString<ToLower, RemoveSpaces>(key_);
+    for (auto const &[key_, value]: obj.at(sectionName).items()) {
+      std::string key = transformString<ToLower, NormalizeSpaces, RemovePunctuation>(key_);
       _dict[key] = Entry{ .str = key, .type = wordType };
       for (std::string synonym: value) {
-	synonym = transformString<ToLower, RemoveSpaces>(synonym);
+	synonym = transformString<ToLower, NormalizeSpaces, RemovePunctuation>(synonym);
 	_dict[synonym] = Entry { .str = key, .type = wordType };
       }
     }
   }
 }
-  
+
+void Dictionary::addPhrase(std::string const &phrase) {
+  std::string key = transformString<ToLower, NormalizeSpaces, RemovePunctuation>(phrase);
+  _dict[key] = Entry { .str = key, .type = WordType::Phrase };
+}
+
 Dictionary::Entry Dictionary::operator[](std::string const &word) const {
   return _dict.contains(word) ? _dict.at(word) : Entry { word, WordType::Unknown };
 }
 
-Dictionary::Entry Dictionary::findEntry(std::vector<std::string> const &vec, size_t startIdx, size_t n) const {
-  assert(startIdx + n - 1 < vec.size() && "ngram index/size out of bounds");
-  std::string ngram = vec[startIdx];
-  for (size_t idx = startIdx + 1; idx <= startIdx + n - 1; ++idx) {
-    ngram += vec[idx];
-  }
-  return (*this)[ngram];
-} 
-
-
 std::vector<Dictionary::Entry> Dictionary::tokenize(std::string input, size_t const ngramSize) const {
-  using enum StringTransform;
-  input = transformString<ToLower, RemovePunctuation>(input);
-  auto vec = split(input, ' ');
-
+  auto wordVec = split(input, ' ');
   std::vector<Dictionary::Entry> tokens;
-  size_t i = 0;
-  while (i < vec.size()) {
+  size_t startIdx = 0;
+  while (startIdx < wordVec.size()) {
     for (size_t n = ngramSize; n != 0; --n) {
-      if (i + n - 1 >= vec.size()) continue;
-      Entry entry = findEntry(vec, i, n);
+      if (startIdx + n - 1 >= wordVec.size()) continue;
+      std::string ngram = wordVec[startIdx];
+      for (size_t idx = startIdx + 1; idx <= startIdx + n - 1; ++idx) {
+	ngram += (" " + wordVec[idx]);
+      }
+      Entry entry = (*this)[transformString<ToLower, NormalizeSpaces, RemovePunctuation>(ngram)];
       if (entry || n == 1) {
 	tokens.push_back(entry);
-	i += n;
+	startIdx += n;
 	break;
       }
     }

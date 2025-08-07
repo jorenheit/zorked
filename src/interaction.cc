@@ -6,6 +6,7 @@
 #include "game.h"
 
 using json = nlohmann::json;
+using enum StringTransform;
 
 Interaction::Interaction(Item *tool,
 			 std::vector<std::string> const &verbs,
@@ -20,8 +21,7 @@ Interaction::Interaction(Item *tool,
 {}
 
 std::unique_ptr<Interaction> Interaction::construct(std::string const &key, json const &obj) {
-  using enum StringTransform;
-  std::vector<std::string> const vec = split(transformString<RemoveSpaces, ToLower>(key), '.');
+  std::vector<std::string> const vec = split(transformString<NormalizeSpaces, ToLower>(key), '.');
 
   std::vector<std::string> verbs;
   verbs.push_back(vec[0]);

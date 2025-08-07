@@ -15,6 +15,7 @@ std::vector<std::string> split(std::string const &str, std::string const &token,
 
 enum class StringTransform {
   RemoveSpaces,
+  NormalizeSpaces,
   RemovePunctuation,
   ToLower,
   ToUpper
@@ -24,10 +25,10 @@ enum class StringTransform {
 #include "stringtransform.tpp" 
 
 template <StringTransform First, StringTransform ... Rest>
-char transformChar(char c) {
-  char result = TransformPolicy<First>::transform(c);
+char transformChar(char c, char prev) {
+  char result = TransformPolicy<First>::transform(c, prev);
   if constexpr (sizeof ... (Rest) > 0) {
-    return transformChar<Rest...>(result);
+    return transformChar<Rest...>(result, prev);
   }
   return result;
 }
@@ -35,9 +36,11 @@ char transformChar(char c) {
 template <StringTransform ... Transforms>
 std::string transformString(std::string const &input) {
   std::string result;
+  char prev = 0;
   for (char c: input) {
-    char sub = transformChar<Transforms ...>(c);
+    char sub = transformChar<Transforms ...>(c, prev);
     if (sub) result += sub;
+    prev = sub;
   }
   return result;
 }

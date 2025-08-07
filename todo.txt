@@ -12,10 +12,10 @@
 [ ] quit
 [x] narration refactor
 [ ] narration format -> box each command/response?
-[ ] narration lore -> add lore field to items = text displayed when item is in their original position. When item was taken, this lore is not printed anymore.
+[x] narration lore -> add lore field to items = text displayed when item is in their original position. When item was taken, this lore is not printed anymore.
 [ ] custom error messages for JSON syntax errors
-[ ] better includes (fwd declarations)
 [ ] number parsing
+    [ ] plural forms
 [ ] introduction narration support
 [ ] item classes
     [ ] Conditions of form [object].is.[class]
@@ -24,8 +24,11 @@
 [ ] check if shared_ptr should be replaced
 [ ] use linenoise for better commandline experience
 [x] refactor object managing system to first add proxies and construct all objects when all proxies are present
+[ ] battle mechanics
+[ ] rework dictionary/lexer -> no lists of nouns/verbs but rely on grammar to identify word type. Add multi-word phrases to dictionary.
+[ ] events
 
 BUGS
 [x] clearing move-condition is not symmetric yet
 [x] clearing condition leads to bad function call -> default std::function is not callable.
-[ ] starting room is not set to visited
+[x] starting room is not set to visited
