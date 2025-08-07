@@ -193,7 +193,7 @@ namespace yy {
 
       case symbol_kind::S_object: // object
       case symbol_kind::S_object_without_article: // object_without_article
-        value.YY_MOVE_OR_COPY< ItemDescriptor > (YY_MOVE (that.value));
+        value.YY_MOVE_OR_COPY< ObjectDescriptor > (YY_MOVE (that.value));
         break;
 
       case symbol_kind::S_DIRECTION: // DIRECTION
@@ -233,7 +233,7 @@ namespace yy {
 
       case symbol_kind::S_object: // object
       case symbol_kind::S_object_without_article: // object_without_article
-        value.move< ItemDescriptor > (YY_MOVE (that.value));
+        value.move< ObjectDescriptor > (YY_MOVE (that.value));
         break;
 
       case symbol_kind::S_DIRECTION: // DIRECTION
@@ -273,7 +273,7 @@ namespace yy {
 
       case symbol_kind::S_object: // object
       case symbol_kind::S_object_without_article: // object_without_article
-        value.copy< ItemDescriptor > (that.value);
+        value.copy< ObjectDescriptor > (that.value);
         break;
 
       case symbol_kind::S_DIRECTION: // DIRECTION
@@ -311,7 +311,7 @@ namespace yy {
 
       case symbol_kind::S_object: // object
       case symbol_kind::S_object_without_article: // object_without_article
-        value.move< ItemDescriptor > (that.value);
+        value.move< ObjectDescriptor > (that.value);
         break;
 
       case symbol_kind::S_DIRECTION: // DIRECTION
@@ -590,7 +590,7 @@ namespace yy {
 
       case symbol_kind::S_object: // object
       case symbol_kind::S_object_without_article: // object_without_article
-        yylhs.value.emplace< ItemDescriptor > ();
+        yylhs.value.emplace< ObjectDescriptor > ();
         break;
 
       case symbol_kind::S_DIRECTION: // DIRECTION
@@ -697,25 +697,25 @@ namespace yy {
 
   case 14: // take_command: TAKE object
 #line 66 "parser.y"
-                            { yylhs.value.as < std::unique_ptr<Action> > () = std::make_unique<Take>(yystack_[0].value.as < ItemDescriptor > ()); }
+                            { yylhs.value.as < std::unique_ptr<Action> > () = std::make_unique<Take>(yystack_[0].value.as < ObjectDescriptor > ()); }
 #line 702 "parserbase.cc"
     break;
 
   case 15: // take_command: TAKE object FROM object
 #line 67 "parser.y"
-                            { yylhs.value.as < std::unique_ptr<Action> > () = std::make_unique<Take>(yystack_[2].value.as < ItemDescriptor > (), yystack_[0].value.as < ItemDescriptor > ()); }
+                            { yylhs.value.as < std::unique_ptr<Action> > () = std::make_unique<Take>(yystack_[2].value.as < ObjectDescriptor > (), yystack_[0].value.as < ObjectDescriptor > ()); }
 #line 708 "parserbase.cc"
     break;
 
   case 16: // drop_command: DROP object
 #line 71 "parser.y"
-                { yylhs.value.as < std::unique_ptr<Action> > () = std::make_unique<Drop>(yystack_[0].value.as < ItemDescriptor > ()); }
+                { yylhs.value.as < std::unique_ptr<Action> > () = std::make_unique<Drop>(yystack_[0].value.as < ObjectDescriptor > ()); }
 #line 714 "parserbase.cc"
     break;
 
   case 19: // inspect_command: INSPECT object
 #line 86 "parser.y"
-                   { yylhs.value.as < std::unique_ptr<Action> > () = std::make_unique<Inspect>(yystack_[0].value.as < ItemDescriptor > ()); }
+                   { yylhs.value.as < std::unique_ptr<Action> > () = std::make_unique<Inspect>(yystack_[0].value.as < ObjectDescriptor > ()); }
 #line 720 "parserbase.cc"
     break;
 
@@ -727,25 +727,25 @@ namespace yy {
 
   case 21: // interact_command: verb object
 #line 91 "parser.y"
-                              { yylhs.value.as < std::unique_ptr<Action> > () = std::make_unique<Interact>(yystack_[1].value.as < std::string > (), yystack_[0].value.as < ItemDescriptor > ()); }
+                              { yylhs.value.as < std::unique_ptr<Action> > () = std::make_unique<Interact>(yystack_[1].value.as < std::string > (), yystack_[0].value.as < ObjectDescriptor > ()); }
 #line 732 "parserbase.cc"
     break;
 
   case 22: // interact_command: USE object TO verb
 #line 92 "parser.y"
-                              { yylhs.value.as < std::unique_ptr<Action> > () = std::make_unique<Interact>(yystack_[0].value.as < std::string > (), yystack_[2].value.as < ItemDescriptor > ()); }
+                              { yylhs.value.as < std::unique_ptr<Action> > () = std::make_unique<Interact>(yystack_[0].value.as < std::string > (), yystack_[2].value.as < ObjectDescriptor > ()); }
 #line 738 "parserbase.cc"
     break;
 
   case 23: // interact_command: verb object WITH object
 #line 93 "parser.y"
-                              { yylhs.value.as < std::unique_ptr<Action> > () = std::make_unique<Interact>(yystack_[3].value.as < std::string > (), yystack_[2].value.as < ItemDescriptor > (), yystack_[0].value.as < ItemDescriptor > ()); }
+                              { yylhs.value.as < std::unique_ptr<Action> > () = std::make_unique<Interact>(yystack_[3].value.as < std::string > (), yystack_[2].value.as < ObjectDescriptor > (), yystack_[0].value.as < ObjectDescriptor > ()); }
 #line 744 "parserbase.cc"
     break;
 
   case 24: // interact_command: USE object TO verb object
 #line 94 "parser.y"
-                              { yylhs.value.as < std::unique_ptr<Action> > () = std::make_unique<Interact>(yystack_[1].value.as < std::string > (), yystack_[0].value.as < ItemDescriptor > (), yystack_[3].value.as < ItemDescriptor > ()); }
+                              { yylhs.value.as < std::unique_ptr<Action> > () = std::make_unique<Interact>(yystack_[1].value.as < std::string > (), yystack_[0].value.as < ObjectDescriptor > (), yystack_[3].value.as < ObjectDescriptor > ()); }
 #line 750 "parserbase.cc"
     break;
 
@@ -763,27 +763,27 @@ namespace yy {
 
   case 27: // object: object_without_article
 #line 106 "parser.y"
-                                   { yylhs.value.as < ItemDescriptor > () = yystack_[0].value.as < ItemDescriptor > (); }
+                                   { yylhs.value.as < ObjectDescriptor > () = yystack_[0].value.as < ObjectDescriptor > (); }
 #line 768 "parserbase.cc"
     break;
 
   case 28: // object: ARTICLE object_without_article
 #line 107 "parser.y"
-                                   { yylhs.value.as < ItemDescriptor > () = yystack_[0].value.as < ItemDescriptor > (); }
+                                   { yylhs.value.as < ObjectDescriptor > () = yystack_[0].value.as < ObjectDescriptor > (); }
 #line 774 "parserbase.cc"
     break;
 
   case 29: // object_without_article: UNKNOWN
 #line 111 "parser.y"
-            { yylhs.value.as < ItemDescriptor > ().noun = yystack_[0].value.as < std::string > (); }
+            { yylhs.value.as < ObjectDescriptor > ().noun = yystack_[0].value.as < std::string > (); }
 #line 780 "parserbase.cc"
     break;
 
   case 30: // object_without_article: adjective object_without_article
 #line 112 "parser.y"
                                      {
-      yylhs.value.as < ItemDescriptor > () = yystack_[0].value.as < ItemDescriptor > ();
-      yylhs.value.as < ItemDescriptor > ().adjectives.push_back(yystack_[1].value.as < std::string > ());
+      yylhs.value.as < ObjectDescriptor > () = yystack_[0].value.as < ObjectDescriptor > ();
+      yylhs.value.as < ObjectDescriptor > ().adjectives.push_back(yystack_[1].value.as < std::string > ());
     }
 #line 789 "parserbase.cc"
     break;

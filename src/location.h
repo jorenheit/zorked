@@ -24,7 +24,6 @@ public:
   void visit();
   void reset();  
   bool visited() const;
-  void clearMoveCondition(Direction dir);
 
   static std::unique_ptr<Location> construct(std::string const &id, nlohmann::json const &obj);
   void to_json(nlohmann::json &jsonObj) const;

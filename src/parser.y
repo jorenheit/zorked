@@ -26,9 +26,9 @@
 %token ARTICLE
 %token END
 
-%type <ItemDescriptor>          object
+%type <ObjectDescriptor>        object
 %type <std::string>             verb
-%type <ItemDescriptor>          object_without_article
+%type <ObjectDescriptor>        object_without_article
 %type <std::string>             adjective
 %type <Direction>               direction
 %type <std::unique_ptr<Action>> command

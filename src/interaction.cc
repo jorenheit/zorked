@@ -24,8 +24,12 @@ std::unique_ptr<Interaction> Interaction::construct(std::string const &key, json
   std::vector<std::string> const vec = split(transformString<NormalizeSpaces, ToLower>(key), '.');
 
   std::vector<std::string> verbs;
-  verbs.push_back(vec[0]);
+  verbs.push_back(normalizeString(vec[0]));
+  for (std::string const &verb: obj.at("verbs").get<std::vector<std::string>>()) {
+    verbs.push_back(normalizeString(verb));
+  }
 
+  
   std::string toolID;
   if (vec.size() != 1) {
     if (vec.size() != 3  || vec[1] != "with") {
@@ -35,7 +39,6 @@ std::unique_ptr<Interaction> Interaction::construct(std::string const &key, json
     toolID = vec[2];
   }
 
-  
   Item *tool = nullptr;
   if (not toolID.empty()) {
     auto pointer = Global::g_objectManager.get(toolID);
@@ -45,21 +48,16 @@ std::unique_ptr<Interaction> Interaction::construct(std::string const &key, json
     tool = pointer.get<Item*>();
   }
 
-  for (std::string const &verb: obj.at("verbs").get<std::vector<std::string>>()) {
-    verbs.push_back(verb);
-  }
-
   std::unique_ptr<Condition> condition = Condition::construct(obj.at(verbs[0] + "-condition"));
   std::vector<std::unique_ptr<Effect>> success, fail;
   for (auto const &[key, value]: obj.at("+").items()) {
     if (key == "_path") continue;
-    //    std::cout << key << ", " << value.dump() << '\n';
     success.emplace_back(Effect::construct(key, value, obj.at("_path")));
   }
   
   for (auto const &[key, value]: obj.at("-").items()) {
     if (key== "_path") continue;
-    //fail.emplace_back(Effect::construct(key, value, obj.at("_path")));
+    fail.emplace_back(Effect::construct(key, value, obj.at("_path")));
   }
   
   return std::make_unique<Interaction>(tool, verbs, std::move(condition), std::move(success), std::move(fail));

@@ -5,8 +5,6 @@
 #include "json.hpp"
 
 using json = nlohmann::json;
-using enum StringTransform;
-
 
 Dictionary::Dictionary(json const &obj) {
   static std::pair<std::string, WordType> const sections[] {
@@ -20,10 +18,10 @@ Dictionary::Dictionary(json const &obj) {
   // TODO: error handling (missing sections)
   for (auto &[sectionName, wordType]: sections) {
     for (auto const &[key_, value]: obj.at(sectionName).items()) {
-      std::string key = transformString<ToLower, NormalizeSpaces, RemovePunctuation>(key_);
+      std::string key = normalizeString(key_);
       _dict[key] = Entry{ .str = key, .type = wordType };
       for (std::string synonym: value) {
-	synonym = transformString<ToLower, NormalizeSpaces, RemovePunctuation>(synonym);
+	synonym = normalizeString(synonym);
 	_dict[synonym] = Entry { .str = key, .type = wordType };
       }
     }
@@ -31,7 +29,7 @@ Dictionary::Dictionary(json const &obj) {
 }
 
 void Dictionary::addPhrase(std::string const &phrase) {
-  std::string key = transformString<ToLower, NormalizeSpaces, RemovePunctuation>(phrase);
+  std::string key = normalizeString(phrase);
   _dict[key] = Entry { .str = key, .type = WordType::Phrase };
 }
 
@@ -50,7 +48,7 @@ std::vector<Dictionary::Entry> Dictionary::tokenize(std::string input, size_t co
       for (size_t idx = startIdx + 1; idx <= startIdx + n - 1; ++idx) {
 	ngram += (" " + wordVec[idx]);
       }
-      Entry entry = (*this)[transformString<ToLower, NormalizeSpaces, RemovePunctuation>(ngram)];
+      Entry entry = (*this)[normalizeString(ngram)];
       if (entry || n == 1) {
 	tokens.push_back(entry);
 	startIdx += n;

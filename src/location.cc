@@ -26,11 +26,6 @@ Location::Connection Location::connection(Direction dir) {
   return _connections[dir];
 }
 
-void Location::clearMoveCondition(Direction dir) {
-  auto const &[loc, condition] = _connections[dir];
-  if (loc) condition->clear();
-}
-
 void Location::visit() {
   _visited = true;
 }

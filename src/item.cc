@@ -8,35 +8,23 @@
 #include "json.hpp" // TODO: move all construct implementations to seperate TU
 using json = nlohmann::json;
 
-std::string ItemDescriptor::str() const {
-  std::string result;
-  for (std::string const &adj: adjectives) {
-    result += (adj + " ");
-  }
-  result += noun;
-  return result;
-}
-
 std::unique_ptr<Item> Item::construct(std::string const &id, json const &obj) {
   std::unique_ptr<ZObject> zObj = ZObject::construct(id, obj);
   auto common = obj.at("common").get<bool>();
   auto portable = obj.at("portable").get<bool>();
   auto weight = obj.at("weight").get<double>();
   std::unique_ptr<Condition> takeCondition = Condition::construct(obj.at("take-condition"));
-  std::vector<std::string> adjectives = obj.at("adjectives");
-  return std::make_unique<Item>(std::move(*zObj), common, portable, weight, std::move(takeCondition), adjectives);
+  return std::make_unique<Item>(std::move(*zObj), common, portable, weight, std::move(takeCondition));
 }
 
 // TODO: move semantics?
 Item::Item(ZObject &&parent, bool common, bool portable, double weight,
-	   std::shared_ptr<Condition> takeCondition,
-	   std::vector<std::string> const &adjectives):
+	   std::shared_ptr<Condition> takeCondition):
   ZObject(std::move(parent)),
   _common(common),
   _portable(portable),
   _weight(weight),
-  _takeCondition(std::move(takeCondition)),
-  _adjectives(adjectives)
+  _takeCondition(std::move(takeCondition))
 {}
 
 bool Item::common() const {
@@ -49,33 +37,6 @@ bool Item::portable() const {
 
 double Item::weight() const {
   return _weight;
-}
-
-std::vector<std::string> const &Item::adjectives() const {
-  return _adjectives;
-}
-
-bool Item::match(ItemDescriptor const &descr) const {
-  bool nounMatch = false;
-  for (std::string const &noun: this->nouns()) {
-    if (noun == descr.noun) {
-      nounMatch = true;
-      break;
-    }
-  }
-  if (not nounMatch) return false;
-  
-  for (std::string const &adj: descr.adjectives) {
-    bool adjMatch = false;
-    for (std::string const &myAdj: this->adjectives()) {
-      if (adj == myAdj) {
-	adjMatch = true;
-	break;
-      }
-    }
-    if (!adjMatch) return false;
-  }
-  return true;
 }
 
 void Item::clearTakeCondition() {

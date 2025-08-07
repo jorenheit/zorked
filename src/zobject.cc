@@ -10,16 +10,26 @@
 #include "json.hpp"
 
 using json = nlohmann::json;
-using enum StringTransform;
+
+
+std::string ObjectDescriptor::str() const {
+  std::string result;
+  for (std::string const &adj: adjectives) {
+    result += (adj + " ");
+  }
+  result += noun;
+  return result;
+}
 
 std::unique_ptr<ZObject> ZObject::construct(std::string const &id, json const &obj) {
   auto label = obj.at("label").get<std::string>();
   auto nouns = obj.at("nouns").get<std::vector<std::string>>();
-  if (nouns.empty()) nouns.push_back(id);
+  nouns.push_back(id);
   for (std::string &str: nouns) {
-    str = transformString<ToLower, NormalizeSpaces, RemovePunctuation>(str);
+    str = normalizeString(str);
   }
 
+  std::vector<std::string> adjectives = obj.at("adjectives");
   std::unique_ptr<Condition> loreCondition = Condition::construct(obj.at("description").at("lore-condition"));
   std::unique_ptr<Condition> inspectCondition = Condition::construct(obj.at("inspect").at("inspect-condition"));
 
@@ -43,11 +53,13 @@ std::unique_ptr<ZObject> ZObject::construct(std::string const &id, json const &o
     interactions.emplace_back(Interaction::construct(key, value));
   }
   
-  return std::make_unique<ZObject>(id, label, nouns, items, state, std::move(loreCondition), std::move(inspectCondition), interactions);
+  return std::make_unique<ZObject>(id, label, nouns, adjectives, items, state, std::move(loreCondition), std::move(inspectCondition), interactions);
 }
 
 // Todo: move semantics
-ZObject::ZObject(std::string const &id, std::string const &label, std::vector<std::string> const &nouns,
+ZObject::ZObject(std::string const &id, std::string const &label,
+		 std::vector<std::string> const &nouns,
+		 std::vector<std::string> const &adjectives,
 		 std::vector<Item*> const &items,
 		 std::unordered_map<std::string, bool> const &state,
 		 std::unique_ptr<Condition> loreCondition,
@@ -56,6 +68,7 @@ ZObject::ZObject(std::string const &id, std::string const &label, std::vector<st
   _id(id),
   _label(label),
   _nouns(nouns),
+  _adjectives(adjectives),
   _loreCondition(std::move(loreCondition)),
   _inspectCondition(std::move(inspectCondition)),
   _interactions(std::move(interactions)),
@@ -80,6 +93,10 @@ std::string const &ZObject::description() const {
 
 std::vector<std::string> const &ZObject::nouns() const {
   return _nouns;
+}
+
+std::vector<std::string> const &ZObject::adjectives() const {
+  return _adjectives;
 }
 
 std::vector<Item*> const &ZObject::items() const {
@@ -123,6 +140,31 @@ bool ZObject::getState(std::string const &stateStr) const {
 void ZObject::setState(std::string const &stateStr, bool value) {
   _state[stateStr] = value;
 }
+
+
+bool ZObject::match(ObjectDescriptor const &descr) const {
+  bool nounMatch = false;
+  for (std::string const &noun: this->nouns()) {
+    if (noun == descr.noun) {
+      nounMatch = true;
+      break;
+    }
+  }
+  if (not nounMatch) return false;
+  
+  for (std::string const &adj: descr.adjectives) {
+    bool adjMatch = false;
+    for (std::string const &myAdj: this->adjectives()) {
+      if (adj == myAdj) {
+	adjMatch = true;
+	break;
+      }
+    }
+    if (!adjMatch) return false;
+  }
+  return true;
+}
+
 
 std::string ZObject::inspect() {
   if (_inspectCondition->eval()) {

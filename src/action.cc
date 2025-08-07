@@ -13,7 +13,7 @@ namespace Impl {
   struct MultipleItemsByThatNoun {};
 
   template <typename ... Objects>
-  Item *findItemImpl(ItemDescriptor const &object, Item *result, ZObject *first, Objects ... rest) {
+  Item *findItemImpl(ObjectDescriptor const &object, Item *result, ZObject *first, Objects ... rest) {
     for (Item *item: first->items()) {
       if (item->match(object)) {
 	if (!result) result = item;
@@ -28,7 +28,7 @@ namespace Impl {
   }
 
   template <typename ... Objects>
-  Item *findItem(ItemDescriptor const &object, ZObject *first, Objects&& ... rest) {
+  Item *findItem(ObjectDescriptor const &object, ZObject *first, Objects&& ... rest) {
     return findItemImpl(object, nullptr, first, std::forward<Objects>(rest)...);
   }
 } // namespace Impl
@@ -50,7 +50,6 @@ std::string Move::exec() const {
   if (not condition->eval())
     return condition->failString();
   
-  //  location->clearMoveCondition(_dir);
   condition->clear();
   player->setLocation(location);
   return condition->successString();
@@ -181,23 +180,24 @@ std::string ShowInventory::exec() const {
 
 std::string Interact::exec() const {
   Player *player = Global::g_objectManager.player();
-
-  ZObject *target = nullptr;
-  try {
-    target = _object.str().empty()
-      ? static_cast<ZObject*>(player)
-      : Impl::findItem(_object, player, player->getLocation());
-  }
-  catch (Impl::MultipleItemsByThatNoun) {
-    return Narration::which_one(_object.str());
-  }
+  Location *location = player->getLocation();
   
-  if (target == nullptr) {
-    // TODO: Check if the object refers to a location
-    // NEED: ItemDescriptor -> ObjectDescriptor to also work for locations
-    // NEED: dynamically update dictionary with multi-word phrases like "living room" and "trash bag"
-    return Narration::there_is_no(_object.str());
+  ZObject *target = nullptr;
+  if (location->match(_object)) {
+    target = location;
   }
+  else {
+    try {
+      target = _object.str().empty()
+	? static_cast<ZObject*>(player)
+	: Impl::findItem(_object, player, player->getLocation());
+    }
+    catch (Impl::MultipleItemsByThatNoun) {
+      return Narration::which_one(_object.str());
+    }
+  }
+
+  if (target == nullptr) return Narration::there_is_no(_object.str());
 
   Item const *tool = nullptr;
   if (not _tool.str().empty()) {

@@ -389,7 +389,7 @@ namespace yy {
 
       // object
       // object_without_article
-      char dummy2[sizeof (ItemDescriptor)];
+      char dummy2[sizeof (ObjectDescriptor)];
 
       // DIRECTION
       // UNKNOWN
@@ -552,7 +552,7 @@ namespace yy {
 
       case symbol_kind::S_object: // object
       case symbol_kind::S_object_without_article: // object_without_article
-        value.move< ItemDescriptor > (std::move (that.value));
+        value.move< ObjectDescriptor > (std::move (that.value));
         break;
 
       case symbol_kind::S_DIRECTION: // DIRECTION
@@ -605,12 +605,12 @@ namespace yy {
 #endif
 
 #if 201103L <= YY_CPLUSPLUS
-      basic_symbol (typename Base::kind_type t, ItemDescriptor&& v)
+      basic_symbol (typename Base::kind_type t, ObjectDescriptor&& v)
         : Base (t)
         , value (std::move (v))
       {}
 #else
-      basic_symbol (typename Base::kind_type t, const ItemDescriptor& v)
+      basic_symbol (typename Base::kind_type t, const ObjectDescriptor& v)
         : Base (t)
         , value (v)
       {}
@@ -670,7 +670,7 @@ switch (yykind)
 
       case symbol_kind::S_object: // object
       case symbol_kind::S_object_without_article: // object_without_article
-        value.template destroy< ItemDescriptor > ();
+        value.template destroy< ObjectDescriptor > ();
         break;
 
       case symbol_kind::S_DIRECTION: // DIRECTION
@@ -1490,7 +1490,7 @@ switch (yykind)
 
       case symbol_kind::S_object: // object
       case symbol_kind::S_object_without_article: // object_without_article
-        value.copy< ItemDescriptor > (YY_MOVE (that.value));
+        value.copy< ObjectDescriptor > (YY_MOVE (that.value));
         break;
 
       case symbol_kind::S_DIRECTION: // DIRECTION
@@ -1546,7 +1546,7 @@ switch (yykind)
 
       case symbol_kind::S_object: // object
       case symbol_kind::S_object_without_article: // object_without_article
-        value.move< ItemDescriptor > (YY_MOVE (s.value));
+        value.move< ObjectDescriptor > (YY_MOVE (s.value));
         break;
 
       case symbol_kind::S_DIRECTION: // DIRECTION

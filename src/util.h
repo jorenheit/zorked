@@ -45,4 +45,10 @@ std::string transformString(std::string const &input) {
   return result;
 }
 
+inline std::string normalizeString(std::string str) {
+  using enum StringTransform;
+  str = trim(str);
+  return transformString<ToLower, NormalizeSpaces, RemovePunctuation>(str);
+}
+
 #endif // UTIL_H

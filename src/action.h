@@ -28,19 +28,19 @@ struct Move: public Action {
 
 
 struct Take: public Action {
-  ItemDescriptor _object;
-  ItemDescriptor _prepObject;
+  ObjectDescriptor _object;
+  ObjectDescriptor _prepObject;
   
-  inline Take(ItemDescriptor const &object, ItemDescriptor const &prepObject = {}):
+  inline Take(ObjectDescriptor const &object, ObjectDescriptor const &prepObject = {}):
     _object(object), _prepObject(prepObject)
   {}
   virtual std::string exec() const override;
 };
 
 struct Drop: public Action {
-  ItemDescriptor _object;
+  ObjectDescriptor _object;
   
-  inline Drop(ItemDescriptor const &object): _object(object) {}
+  inline Drop(ObjectDescriptor const &object): _object(object) {}
   virtual std::string exec() const override;
 };
 
@@ -49,9 +49,9 @@ struct Drop: public Action {
 // --> container class? or simply a boolean?
 
 struct Inspect: public Action {
-  ItemDescriptor _object;
+  ObjectDescriptor _object;
   
-  inline Inspect(ItemDescriptor const &object): _object(object) {}
+  inline Inspect(ObjectDescriptor const &object): _object(object) {}
   virtual std::string exec() const override;
 };
 
@@ -62,12 +62,12 @@ struct ShowInventory: public Action {
 struct Interact: public Action {
 
   std::string _verb;
-  ItemDescriptor _object;
-  ItemDescriptor _tool;
+  ObjectDescriptor _object;
+  ObjectDescriptor _tool;
   
   inline Interact(std::string const &verb,
-		  ItemDescriptor const &object = {},
-		  ItemDescriptor const &tool = {}):
+		  ObjectDescriptor const &object = {},
+		  ObjectDescriptor const &tool = {}):
     _verb(verb),
     _object(object),
     _tool(tool)
@@ -84,12 +84,5 @@ struct Save: public Action {
 struct Load: public Action {
   virtual std::string exec() const override;
 };
-
-template <typename ActionType>
-inline std::string ActionVerb;
-
-#define SET_VERB(ActionType, Verb) template <> inline std::string ActionVerb<ActionType> = Verb;
-SET_VERB(Move, "move");
-SET_VERB(Take, "take");
 
 #endif // ACTION_H

@@ -11,10 +11,18 @@ class Condition;
 class Item;
 class Interaction;
 
+
+struct ObjectDescriptor {
+  std::string noun;
+  std::vector<std::string> adjectives;
+  std::string str() const;
+};
+
 class ZObject {
   std::string _id;
   std::string _label;
   std::vector<std::string> _nouns;
+  std::vector<std::string> _adjectives;
   std::unique_ptr<Condition> _loreCondition;
   std::unique_ptr<Condition> _inspectCondition;
   std::vector<std::unique_ptr<Interaction>> _interactions;
@@ -24,7 +32,9 @@ class ZObject {
   
 public:
   ZObject(ZObject&&) = default;
-  ZObject(std::string const &id, std::string const &label, std::vector<std::string> const &nouns,
+  ZObject(std::string const &id, std::string const &label,
+	  std::vector<std::string> const &nouns,
+	  std::vector<std::string> const &adjectives,
 	  std::vector<Item*> const &items,
 	  std::unordered_map<std::string, bool> const &state,
 	  std::unique_ptr<Condition> loreCondition,
@@ -35,13 +45,15 @@ public:
   std::string const &label() const;
   std::string const &description() const;
   std::vector<std::string> const &nouns() const;
+  std::vector<std::string> const &adjectives() const;
   std::vector<std::unique_ptr<Interaction>> const &interactions() const;
+
   
   std::vector<Item*> const &items() const;
   std::unordered_map<std::string, bool> const &state() const;
 
   std::string inspect();
-  
+  bool match(ObjectDescriptor const &descr) const;
   void addItem(Item *item);
   bool removeItem(Item const *item);
   size_t contains(Item const *item) const; 

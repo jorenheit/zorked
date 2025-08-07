@@ -295,6 +295,7 @@ namespace {
 		    Field::Optional(json_t::object, "items"),
 		    Field::Optional(json_t::object, "common-items"),
 		    Field::Optional(json_t::array, "nouns"),
+		    Field::Optional(json_t::array, "adjectives"),
 		    Field::Optional(json_t::object, "interactions")
 		    );
 
@@ -302,6 +303,7 @@ namespace {
     normalizeInspect(obj["inspect"], path);
     normalizeInteractions(obj["interactions"], path);
     normalizeArray(json_t::string, obj["nouns"], "nouns", path);
+    normalizeArray(json_t::string, obj["adjectives"], "adjectives", path);
     normalizeItems(obj["items"], path);
     normalizeCommonItemReferences(obj["common-items"], path);
     setPath(obj, path);
@@ -362,7 +364,8 @@ namespace {
 		      Field::Required(json_t::string, "label"),
 		      Field::Optional(json_t::object, "state"),
 		      Field::Optional(json_t::object, "items"),
-		      Field::Optional(json_t::array,  "nouns"),
+		      Field::Optional(json_t::array,  "nouns"),	
+		      Field::Optional(json_t::array,  "adjectives"),
 		      Field::Optional(json_t::object, "common-items"),
 		      Field::Optional(json_t::object, "interactions")
 		      );
@@ -371,6 +374,7 @@ namespace {
       normalizeInspect(value["inspect"], nestedPath);
       normalizeItems(value["items"], nestedPath);
       normalizeArray(json_t::string, value["nouns"], "nouns", nestedPath);
+      normalizeArray(json_t::string, value["adjectives"], "adjectives", nestedPath);
       normalizeCommonItemReferences(value["common-items"], nestedPath);
       normalizeInteractions(value["interactions"], nestedPath);
       setPath(value, nestedPath);
