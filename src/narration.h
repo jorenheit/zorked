@@ -79,6 +79,14 @@ namespace Narration {
   inline std::string not_portable(std::string const &object) {
     return "The " + object + " is not portable.";
   }
+
+  inline std::string dont_know_how_to(std::string const &verb, std::string const &object, std::string const &tool) {
+    std::string result = "I don't know how to " + verb;
+    if (not object.empty()) result += " the " + object;
+    if (not tool.empty()) result += " with " + a_or_an(tool);
+    result += ".";
+    return result;
+  }
 };
 
 #endif // NARRATION_H

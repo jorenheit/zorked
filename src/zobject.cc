@@ -5,6 +5,7 @@
 #include "game.h"
 #include "narration.h"
 #include "condition.h"
+#include "interaction.h"
 #include "objectmanager.h"
 #include "json.hpp"
 
@@ -26,6 +27,7 @@ std::unique_ptr<ZObject> ZObject::construct(std::string const &id, json const &o
   }
   auto itemIDs = obj.at("items").get<std::vector<std::string>>();
 
+  
   std::vector<Item*> items;
   for (std::string const &id: itemIDs) {
     ObjectPointer ptr = Global::g_objectManager.get(id, ObjectType::LocalItem, ObjectType::CommonItem);
@@ -33,7 +35,12 @@ std::unique_ptr<ZObject> ZObject::construct(std::string const &id, json const &o
     items.push_back(ptr.get<Item*>()); // Will construct the object from its proxy if necessary
   }
 
-  return std::make_unique<ZObject>(id, label, nouns, items, state, std::move(loreCondition), std::move(inspectCondition));
+  std::vector<std::unique_ptr<Interaction>> interactions;
+  for (auto const &[key, value]: obj.at("interactions").items()) {
+    interactions.emplace_back(Interaction::construct(key, value));
+  }
+  
+  return std::make_unique<ZObject>(id, label, nouns, items, state, std::move(loreCondition), std::move(inspectCondition), interactions);
 }
 
 // Todo: move semantics
@@ -41,12 +48,14 @@ ZObject::ZObject(std::string const &id, std::string const &label, std::vector<st
 		 std::vector<Item*> const &items,
 		 std::unordered_map<std::string, bool> const &state,
 		 std::unique_ptr<Condition> loreCondition,
-		 std::unique_ptr<Condition> inspectCondition):
+		 std::unique_ptr<Condition> inspectCondition,
+		 std::vector<std::unique_ptr<Interaction>> &interactions):
   _id(id),
   _label(label),
   _nouns(nouns),
   _loreCondition(std::move(loreCondition)),
   _inspectCondition(std::move(inspectCondition)),
+  _interactions(std::move(interactions)),
   _items(items),
   _state(state)
 {}
@@ -78,18 +87,22 @@ std::unordered_map<std::string, bool> const &ZObject::state() const {
   return _state;
 }
 
+std::vector<std::unique_ptr<Interaction>> const &ZObject::interactions() const {
+  return _interactions;
+}
+
 void ZObject::addItem(Item *item) {
   _items.push_back(item);
 }
 
-bool ZObject::removeItem(Item *item) {
+bool ZObject::removeItem(Item const *item) {
   auto it = std::find(_items.begin(), _items.end(), item);
   if (it == _items.end()) return false;
   _items.erase(it);
   return true;
 }
 
-size_t ZObject::contains(Item *item) const {
+size_t ZObject::contains(Item const *item) const {
   size_t count = 0;
   for (auto const &itemPtr: _items) {
     count += (itemPtr == item);

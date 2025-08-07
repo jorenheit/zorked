@@ -44,6 +44,10 @@ struct Drop: public Action {
   virtual std::string exec() const override;
 };
 
+// TODO: insert action (PUT X in Y -> opposite to TAKE X from Y)
+// --> need  way to tell if objects can hold other objects
+// --> container class? or simply a boolean?
+
 struct Inspect: public Action {
   ItemDescriptor _object;
   
@@ -51,8 +55,24 @@ struct Inspect: public Action {
   virtual std::string exec() const override;
 };
 
-
 struct ShowInventory: public Action {
+  virtual std::string exec() const override;
+};
+
+struct Interact: public Action {
+
+  std::string _verb;
+  ItemDescriptor _object;
+  ItemDescriptor _tool;
+  
+  inline Interact(std::string const &verb,
+		  ItemDescriptor const &object = {},
+		  ItemDescriptor const &tool = {}):
+    _verb(verb),
+    _object(object),
+    _tool(tool)
+  {}
+  
   virtual std::string exec() const override;
 };
 

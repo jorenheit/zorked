@@ -396,6 +396,7 @@ namespace yy {
       // NOUN
       // ADJECTIVE
       // UNKNOWN
+      // verb
       // modifier
       char dummy3[sizeof (std::string)];
 
@@ -404,6 +405,7 @@ namespace yy {
       // take_command
       // drop_command
       // inspect_command
+      // interact_command
       char dummy4[sizeof (std::unique_ptr<Action>)];
     };
 
@@ -453,16 +455,19 @@ namespace yy {
     DROP = 260,                    // DROP
     INV = 261,                     // INV
     INSPECT = 262,                 // INSPECT
-    SAVE = 263,                    // SAVE
-    LOAD = 264,                    // LOAD
-    FROM = 265,                    // FROM
-    DIRECTION = 266,               // DIRECTION
-    VERB = 267,                    // VERB
-    NOUN = 268,                    // NOUN
-    ADJECTIVE = 269,               // ADJECTIVE
-    UNKNOWN = 270,                 // UNKNOWN
-    ARTICLE = 271,                 // ARTICLE
-    END = 272                      // END
+    USE = 263,                     // USE
+    SAVE = 264,                    // SAVE
+    LOAD = 265,                    // LOAD
+    FROM = 266,                    // FROM
+    TO = 267,                      // TO
+    WITH = 268,                    // WITH
+    DIRECTION = 269,               // DIRECTION
+    VERB = 270,                    // VERB
+    NOUN = 271,                    // NOUN
+    ADJECTIVE = 272,               // ADJECTIVE
+    UNKNOWN = 273,                 // UNKNOWN
+    ARTICLE = 274,                 // ARTICLE
+    END = 275                      // END
       };
       /// Backward compatibility alias (Bison 3.6).
       typedef token_kind_type yytokentype;
@@ -479,7 +484,7 @@ namespace yy {
     {
       enum symbol_kind_type
       {
-        YYNTOKENS = 18, ///< Number of tokens.
+        YYNTOKENS = 21, ///< Number of tokens.
         S_YYEMPTY = -2,
         S_YYEOF = 0,                             // "end of file"
         S_YYerror = 1,                           // error
@@ -489,28 +494,33 @@ namespace yy {
         S_DROP = 5,                              // DROP
         S_INV = 6,                               // INV
         S_INSPECT = 7,                           // INSPECT
-        S_SAVE = 8,                              // SAVE
-        S_LOAD = 9,                              // LOAD
-        S_FROM = 10,                             // FROM
-        S_DIRECTION = 11,                        // DIRECTION
-        S_VERB = 12,                             // VERB
-        S_NOUN = 13,                             // NOUN
-        S_ADJECTIVE = 14,                        // ADJECTIVE
-        S_UNKNOWN = 15,                          // UNKNOWN
-        S_ARTICLE = 16,                          // ARTICLE
-        S_END = 17,                              // END
-        S_YYACCEPT = 18,                         // $accept
-        S_input = 19,                            // input
-        S_command = 20,                          // command
-        S_move_command = 21,                     // move_command
-        S_take_command = 22,                     // take_command
-        S_drop_command = 23,                     // drop_command
-        S_inventory_command = 24,                // inventory_command
-        S_inspect_command = 25,                  // inspect_command
-        S_direction = 26,                        // direction
-        S_object = 27,                           // object
-        S_object_without_article = 28,           // object_without_article
-        S_modifier = 29                          // modifier
+        S_USE = 8,                               // USE
+        S_SAVE = 9,                              // SAVE
+        S_LOAD = 10,                             // LOAD
+        S_FROM = 11,                             // FROM
+        S_TO = 12,                               // TO
+        S_WITH = 13,                             // WITH
+        S_DIRECTION = 14,                        // DIRECTION
+        S_VERB = 15,                             // VERB
+        S_NOUN = 16,                             // NOUN
+        S_ADJECTIVE = 17,                        // ADJECTIVE
+        S_UNKNOWN = 18,                          // UNKNOWN
+        S_ARTICLE = 19,                          // ARTICLE
+        S_END = 20,                              // END
+        S_YYACCEPT = 21,                         // $accept
+        S_input = 22,                            // input
+        S_command = 23,                          // command
+        S_move_command = 24,                     // move_command
+        S_take_command = 25,                     // take_command
+        S_drop_command = 26,                     // drop_command
+        S_inventory_command = 27,                // inventory_command
+        S_inspect_command = 28,                  // inspect_command
+        S_interact_command = 29,                 // interact_command
+        S_direction = 30,                        // direction
+        S_verb = 31,                             // verb
+        S_object = 32,                           // object
+        S_object_without_article = 33,           // object_without_article
+        S_modifier = 34                          // modifier
       };
     };
 
@@ -559,6 +569,7 @@ namespace yy {
       case symbol_kind::S_NOUN: // NOUN
       case symbol_kind::S_ADJECTIVE: // ADJECTIVE
       case symbol_kind::S_UNKNOWN: // UNKNOWN
+      case symbol_kind::S_verb: // verb
       case symbol_kind::S_modifier: // modifier
         value.move< std::string > (std::move (that.value));
         break;
@@ -568,6 +579,7 @@ namespace yy {
       case symbol_kind::S_take_command: // take_command
       case symbol_kind::S_drop_command: // drop_command
       case symbol_kind::S_inspect_command: // inspect_command
+      case symbol_kind::S_interact_command: // interact_command
         value.move< std::unique_ptr<Action> > (std::move (that.value));
         break;
 
@@ -678,6 +690,7 @@ switch (yykind)
       case symbol_kind::S_NOUN: // NOUN
       case symbol_kind::S_ADJECTIVE: // ADJECTIVE
       case symbol_kind::S_UNKNOWN: // UNKNOWN
+      case symbol_kind::S_verb: // verb
       case symbol_kind::S_modifier: // modifier
         value.template destroy< std::string > ();
         break;
@@ -687,6 +700,7 @@ switch (yykind)
       case symbol_kind::S_take_command: // take_command
       case symbol_kind::S_drop_command: // drop_command
       case symbol_kind::S_inspect_command: // inspect_command
+      case symbol_kind::S_interact_command: // interact_command
         value.template destroy< std::unique_ptr<Action> > ();
         break;
 
@@ -967,6 +981,21 @@ switch (yykind)
 #if 201103L <= YY_CPLUSPLUS
       static
       symbol_type
+      make_USE ()
+      {
+        return symbol_type (token::USE);
+      }
+#else
+      static
+      symbol_type
+      make_USE ()
+      {
+        return symbol_type (token::USE);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
       make_SAVE ()
       {
         return symbol_type (token::SAVE);
@@ -1007,6 +1036,36 @@ switch (yykind)
       make_FROM ()
       {
         return symbol_type (token::FROM);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_TO ()
+      {
+        return symbol_type (token::TO);
+      }
+#else
+      static
+      symbol_type
+      make_TO ()
+      {
+        return symbol_type (token::TO);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_WITH ()
+      {
+        return symbol_type (token::WITH);
+      }
+#else
+      static
+      symbol_type
+      make_WITH ()
+      {
+        return symbol_type (token::WITH);
       }
 #endif
 #if 201103L <= YY_CPLUSPLUS
@@ -1418,9 +1477,9 @@ switch (yykind)
     /// Constants.
     enum
     {
-      yylast_ = 33,     ///< Last index in yytable_.
-      yynnts_ = 12,  ///< Number of nonterminal symbols.
-      yyfinal_ = 29 ///< Termination state number.
+      yylast_ = 46,     ///< Last index in yytable_.
+      yynnts_ = 14,  ///< Number of nonterminal symbols.
+      yyfinal_ = 35 ///< Termination state number.
     };
 
 
@@ -1464,10 +1523,10 @@ switch (yykind)
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
        5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
-      15,    16,    17
+      15,    16,    17,    18,    19,    20
     };
     // Last valid token kind.
-    const int code_max = 272;
+    const int code_max = 275;
 
     if (t <= 0)
       return symbol_kind::S_YYEOF;
@@ -1499,6 +1558,7 @@ switch (yykind)
       case symbol_kind::S_NOUN: // NOUN
       case symbol_kind::S_ADJECTIVE: // ADJECTIVE
       case symbol_kind::S_UNKNOWN: // UNKNOWN
+      case symbol_kind::S_verb: // verb
       case symbol_kind::S_modifier: // modifier
         value.copy< std::string > (YY_MOVE (that.value));
         break;
@@ -1508,6 +1568,7 @@ switch (yykind)
       case symbol_kind::S_take_command: // take_command
       case symbol_kind::S_drop_command: // drop_command
       case symbol_kind::S_inspect_command: // inspect_command
+      case symbol_kind::S_interact_command: // interact_command
         value.copy< std::unique_ptr<Action> > (YY_MOVE (that.value));
         break;
 
@@ -1556,6 +1617,7 @@ switch (yykind)
       case symbol_kind::S_NOUN: // NOUN
       case symbol_kind::S_ADJECTIVE: // ADJECTIVE
       case symbol_kind::S_UNKNOWN: // UNKNOWN
+      case symbol_kind::S_verb: // verb
       case symbol_kind::S_modifier: // modifier
         value.move< std::string > (YY_MOVE (s.value));
         break;
@@ -1565,6 +1627,7 @@ switch (yykind)
       case symbol_kind::S_take_command: // take_command
       case symbol_kind::S_drop_command: // drop_command
       case symbol_kind::S_inspect_command: // inspect_command
+      case symbol_kind::S_interact_command: // interact_command
         value.move< std::unique_ptr<Action> > (YY_MOVE (s.value));
         break;
 
@@ -1633,7 +1696,7 @@ switch (yykind)
 
 
 } // yy
-#line 1637 "parserbase.h"
+#line 1700 "parserbase.h"
 
 
 

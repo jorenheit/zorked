@@ -63,6 +63,7 @@ public:
   inline bool eval() const { return _check(); }
   inline std::string const &successString() const { return _success; }
   inline std::string const &failString() const { return _fail; }
+  inline std::string const &resultString(bool result) const { return result ? _success : _fail; }
   inline bool empty() const { return _empty; }
   void clear();
 

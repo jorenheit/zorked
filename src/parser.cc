@@ -50,6 +50,8 @@ ParserBase::symbol_type Parser::yylex() {
   case WordType::Noun:			return ParserBase::make_NOUN(token.str);
   case WordType::Preposition: {
     if (token.str == "from")		return ParserBase::make_FROM();
+    if (token.str == "to")		return ParserBase::make_TO();
+    if (token.str == "with")		return ParserBase::make_WITH();
     UNREACHABLE("unimplemented preposition");
   }
   case WordType::Adjective:		return ParserBase::make_ADJECTIVE(token.str);

@@ -1,6 +1,7 @@
 {
     "living_room": {
 	"label": "Living Room",
+	"nouns": ["living", "living room"],
 	"description": "You are standing in a small living room. There is a door to the north and a door to the south.",
 	"items": {
 	    "door": {
@@ -8,23 +9,49 @@
 		"description": {
 		    "lore-condition": {
 			"door.is.locked": true,
-			"success": "The north door seems to be locked.",
-			"fail": "The north door has been unlocked."
+			"+": "The north door seems to be locked.",
+			"-": "The north door has been unlocked."
 		    }
 		},
 		"portable": false,
 		"state": { "locked": true },
 		"interactions": {
 		    "unlock": {
-			"commands": ["open", "unlock"],
-			"tools": ["key"],
-			"state": { "locked": false },
-			"fail": "You need a key to unlock the door.",
-			"success": "The key fits and unlocks the door."
+			"verbs": ["open"],
+			"unlock-condition": {
+			    "door.is.locked": true,
+			    "-": "The door is already unlocked",
+			    "+": "You need a key to unlock this door."
+			}
+		    },
+		    "unlock.with.key": {
+			"verbs": ["open"],
+			"unlock-condition": {
+			    "door.is.locked": true,
+			    "-": "The door is already unlocked.",
+			    "+": "You unlocked the door and found 3 coins!"
+			},
+			"+": {
+			    "door.is.locked": false,
+			    "player.has.key": false,
+			    "player.has.coin.+": 3
+			}
+		    },
+		    "unlock.with.key3": {
+			"verbs": ["open"],
+			"unlock-condition": {
+			    "door.is.locked": true,
+			    "-": "The door is already unlocked.",
+			    "+": "This key doens't fit."
+			}
 		    },
 		    "force": {
-			"commands": ["kick", "force", "punch"],
-			"success": "The door won't budge. You really need that key."
+			"verbs": ["kick", "punch"],
+			"force-condition": {
+			    "door.is.locked": true,
+			    "-": "The door is already unlocked.",
+			    "+": "The door won't budge. You really need a key."
+			}
 		    }
 		}
 	    }
@@ -39,6 +66,10 @@
 	"description": "The kitchen is dirty, there are dishes everywhere and it smells like rotten eggs. You see footsteps leading to and from a drawer.",
 	"state": { "dirty": true },
 	"items": {
+	    "key1": {
+		"label": "Key1",
+		"description": "Test key"
+	    },
 	    "jar" : {
 		"label": "Glass Jar",
 		"description": "On a table sits glass jar. It looks like it has something inside.",
@@ -55,7 +86,7 @@
 			"weight": 0.0,
 			"take-condition": {
 			    "jar.is.broken": false,
-			    "fail": "You can't reach it."
+			    "-": "You can't reach it."
 			}
 		    }
 		},
@@ -98,8 +129,8 @@
 		"inspect": {
 		    "inspect-condition": {
 			"drawer.has.key": true,
-			"success": "There is something shiny in the drawer",			
-			"fail": "The drawer is empty"
+			"+": "There is something shiny in the drawer",			
+			"-": "The drawer is empty"
 		    }
 		},
 		"portable": false,

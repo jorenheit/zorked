@@ -27,7 +27,9 @@ CC_SRCS  := \
 	save.cc \
 	objectmanager.cc \
 	parser.cc \
-	globaldata.cc
+	globaldata.cc \
+	interaction.cc \
+	effect.cc
 
 
 # Object files

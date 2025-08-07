@@ -2,6 +2,7 @@
 #include "player.h"
 #include "item.h"
 #include "condition.h"
+#include "interaction.h"
 #include "json.hpp"
 
 using json = nlohmann::json;

@@ -7,7 +7,7 @@
 #include "narration.h"
 #include "dictionary.h"
 #include "objectmanager.h"
-
+#include "interaction.h"
 
 namespace Impl {
   struct MultipleItemsByThatNoun {};
@@ -50,7 +50,8 @@ std::string Move::exec() const {
   if (not condition->eval())
     return condition->failString();
   
-  location->clearMoveCondition(_dir);
+  //  location->clearMoveCondition(_dir);
+  condition->clear();
   player->setLocation(location);
   return condition->successString();
 }
@@ -176,6 +177,63 @@ std::string ShowInventory::exec() const {
     itemLabels.push_back(item->label());
   }
   return Narration::list_items("inventory", itemLabels);
+}
+
+std::string Interact::exec() const {
+  Player *player = Global::g_objectManager.player();
+
+  ZObject *target = nullptr;
+  try {
+    target = _object.str().empty()
+      ? static_cast<ZObject*>(player)
+      : Impl::findItem(_object, player, player->getLocation());
+  }
+  catch (Impl::MultipleItemsByThatNoun) {
+    return Narration::which_one(_object.str());
+  }
+  
+  if (target == nullptr) {
+    // TODO: Check if the object refers to a location
+    // NEED: ItemDescriptor -> ObjectDescriptor to also work for locations
+    // NEED: dynamically update dictionary with multi-word phrases like "living room" and "trash bag"
+    return Narration::there_is_no(_object.str());
+  }
+
+  Item const *tool = nullptr;
+  if (not _tool.str().empty()) {
+    try {
+      tool = Impl::findItem(_tool, player);
+    }
+    catch (Impl::MultipleItemsByThatNoun) {
+      return Narration::which_one(_tool.str());
+    }
+  }
+  
+  if (not _tool.str().empty() && not tool) {
+    return Narration::you_do_not_own(_tool.str());
+  }
+
+  Interaction *match = nullptr;
+  for (auto const &interactionPtr: target->interactions()) {
+    for (std::string const &verb: interactionPtr->verbs()) {
+      if (_verb == verb && tool == interactionPtr->tool()) {
+	match = interactionPtr.get();
+	break;
+      }
+    }
+    if (match) break;
+  }
+  
+  if (not match) {
+    return Narration::dont_know_how_to(_verb, _object.str(), _tool.str());
+  }
+
+  Condition const *condition = match->condition();
+  bool const result = condition->eval();
+  for (auto const &effect: match->effects(result)) {
+    effect->apply();
+  }
+  return condition->resultString(result);
 }
 
 std::string Save::exec() const {

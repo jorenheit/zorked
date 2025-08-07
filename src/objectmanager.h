@@ -23,11 +23,15 @@ enum class ObjectType {
 
 class ObjectPointer;
 
+namespace Impl {
+  std::vector<std::string> getItemIDs(nlohmann::json const &obj);
+}
+
 class ObjectManagerBase {
 public:
   virtual ~ObjectManagerBase() = default;
-  virtual ZObject &getReference(size_t index) = 0;
-  virtual ZObject const &getReference(size_t index) const = 0;
+  virtual ZObject *getRawPointer(size_t index) = 0;
+  virtual ZObject const *getRawPointer(size_t index) const = 0;
 };
 
 
@@ -60,7 +64,15 @@ public:
   Derived get() const {
     return const_cast<ObjectPointer*>(this)->get<Derived>();
   }
-    
+
+  ZObject *get() {
+    return this->get<ZObject*>();
+  }
+
+  ZObject *get() const {
+    return this->get<ZObject*>();
+  }
+  
 };
 
 template <typename T>
@@ -75,14 +87,9 @@ public:
   void construct(size_t index);
   void constructAll();
   
-  // TODO: remove this
-  std::vector<std::pair<std::string, nlohmann::json>> const &proxies() const {
-    return _proxies;
-  }
-  
 private:
-  virtual ZObject &getReference(size_t index) override;
-  virtual ZObject const &getReference(size_t index) const override;
+  virtual ZObject *getRawPointer(size_t index) override;
+  virtual ZObject const *getRawPointer(size_t index) const override;
 };
 
 class ObjectManager {
@@ -94,16 +101,16 @@ class ObjectManager {
 
   nlohmann::json _playerData;
   nlohmann::json _connections;
-  std::string _startLocation;
+  std::pair<std::string, std::string> _startLocation;
   bool _initialized = false;
   
 public:
   ObjectPointer addProxy(std::string const &id, nlohmann::json const &obj, ObjectType type);  
   void setPlayer(nlohmann::json const &obj);
   void setConnections(nlohmann::json const &obj);
-  void setStart(std::string const &startID);
+  void setStart(std::string const &startID, std::string const &path);
 
-  void build();
+  void init();
     
   // TODO: make these const
   ObjectPointer get(std::string const &id);

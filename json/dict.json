@@ -6,6 +6,7 @@
 	"look": ["look around"],
 	"inspect": ["examine", "look at", "check", "show"],
 	"inventory": ["items", "inv"],
+	"use": [],
 	"help": [],
 	"save": ["save game"],
 	"load": ["load game"],
@@ -48,7 +49,6 @@
     "verbs": {
 	"open": ["unlock"],
 	"close": ["shut"],
-	"use": ["activate", "apply"],
 	"talk": ["speak", "chat"],
 	"attack": ["hit", "strike", "fight"],
 	"eat": ["consume", "devour"],

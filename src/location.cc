@@ -4,6 +4,7 @@
 #include "game.h"
 #include "util.h"
 #include "condition.h"
+#include "interaction.h"
 #include "json.hpp"
 
 using json = nlohmann::json;

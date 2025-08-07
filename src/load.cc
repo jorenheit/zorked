@@ -93,8 +93,17 @@ namespace {
 	throw Exception::InvalidArrayType(path, key, json(type).type_name(), element.type_name());
     }
   }
-  
-  
+
+  void normalizeState(json &obj, std::string const &path) {
+    assert(obj.type() == json_t::object);
+    for (auto &[key, value]: obj.items()) {
+      if (value.type() != json_t::boolean) {
+	throw Exception::InvalidFieldType(path, key, "boolean", value.type_name());
+      }
+    }
+    setPath(obj, path);
+  }
+
   template <typename ... Fields>
   void normalizeObject(json &obj, std::string const &path, Fields ... fields) {
     assert(obj.is_object());
@@ -105,8 +114,8 @@ namespace {
     assert(obj.is_object());
     std::string currentPath = path + "::" + kind + "-condition";
     normalizeObject(obj, currentPath,
-		    Field::Optional(json_t::string, "success"),
-		    Field::Optional(json_t::string, "fail")
+		    Field::Optional(json_t::string, "+"),
+		    Field::Optional(json_t::string, "-")
 		    );
 
     // Set paths recursively but do not check if the structure is sound, that will
@@ -126,11 +135,41 @@ namespace {
     setPathRecursively(obj, currentPath);
   }
 
+  void normalizeEffects(json &obj, std::string const &path) {
+    assert(obj.is_object());
+    // Parsing each of the effects will be done in the Effect constructor
+    setPath(obj, path);
+  }
+  
+
+  void normalizeInteractions(json &obj, std::string const &path) {
+    assert(obj.is_object());
+
+    for (auto const &[key, value]: obj.items()) {
+      std::string currentPath = path + "::" + key;
+
+      std::string action = split(key, '.')[0];
+      normalizeObject(value, currentPath,
+		      Field::Optional(json_t::array, "verbs"),
+		      Field::Optional(json_t::object, action + "-condition"),
+		      Field::Optional(json_t::object, "+"),
+		      Field::Optional(json_t::object, "-")
+		      
+		      );
+
+      normalizeArray(json_t::string, value["verbs"], "verbs", currentPath);
+      normalizeCondition(value[action + "-condition"], action, currentPath);
+      normalizeEffects(value["+"], currentPath);
+      normalizeEffects(value["-"], currentPath);
+      setPath(value, currentPath);
+    }
+  }
+
   void normalizeDescription(json &obj, std::string const &path) {
     std::string currentPath = path + "::description";
     if (obj.is_string()) {
       std::string descr = obj;
-      obj = json {{"lore-condition", json {{"success", descr}, {"fail", ""}}}};
+      obj = json {{"lore-condition", json {{"+", descr}, {"-", ""}}}};
     }
     else if (!obj.is_object()) {
       throw Exception::SpecificFormatError(path, "Description should be either a string or a 'lore-condition' object.");
@@ -141,21 +180,11 @@ namespace {
     setPath(obj, currentPath);
   }
   
-  void normalizeState(json &obj, std::string const &path) {
-    assert(obj.type() == json_t::object);
-    for (auto &[key, value]: obj.items()) {
-      if (value.type() != json_t::boolean) {
-	throw Exception::InvalidFieldType(path, key, "boolean", value.type_name());
-      }
-    }
-    setPath(obj, path);
-  }
-
   void normalizeInspect(json &obj, std::string const &path) {
     std::string currentPath = path + "::inspect";
     if (obj.is_string() || obj.is_null()) {
       std::string descr = obj.is_null() ? "" : obj.get<std::string>();
-      obj = json {{"inspect-condition", json {{"success", descr}, {"fail", ""}}}};
+      obj = json {{"inspect-condition", json {{"+", descr}, {"-", ""}}}};
     }
     else if (!obj.is_object()) {
       throw Exception::SpecificFormatError(path, "Inspect field should be either a string or an 'inspect-condition' object.");
@@ -195,12 +224,14 @@ namespace {
 		      Field::Optional(json_t::object, "take-condition"),
 		      Field::Optional(json_t::object, "state"),
 		      Field::Optional(json_t::object, "items"),
-		      Field::Optional(json_t::object, "common-items")
+		      Field::Optional(json_t::object, "common-items"),
+		      Field::Optional(json_t::object, "interactions")
 		      );
+
 
       normalizeDescription(value["description"], nestedPath);
       normalizeInspect(value["inspect"], nestedPath);
-      
+      normalizeInteractions(value["interactions"], nestedPath);
       normalizeArray(json_t::string, value["nouns"], "nouns", nestedPath);
       normalizeArray(json_t::string, value["adjectives"], "adjectives", nestedPath);
       normalizeCondition(value["take-condition"], "take", nestedPath);
@@ -243,14 +274,17 @@ namespace {
 		    Field::Optional(json_t::number_float, "health", 100.0),
 		    Field::Optional(json_t::object, "state"),
 		    Field::Optional(json_t::object, "items"),
-		    Field::Optional(json_t::array, "nouns")
+		    Field::Optional(json_t::object, "common-items"),
+		    Field::Optional(json_t::array, "nouns"),
+		    Field::Optional(json_t::object, "interactions")
 		    );
 
     normalizeDescription(obj["description"], path);
     normalizeInspect(obj["inspect"], path);
-    
+    normalizeInteractions(obj["interactions"], path);
     normalizeArray(json_t::string, obj["nouns"], "nouns", path);
     normalizeItems(obj["items"], path);
+    normalizeCommonItemReferences(obj["common-items"], path);
     setPath(obj, path);
     Global::g_objectManager.setPlayer(obj);
   }
@@ -276,12 +310,13 @@ namespace {
 		      Field::Optional(json_t::number_float, "weight"),
 		      Field::Optional(json_t::object, "items"),
 		      Field::Optional(json_t::object, "common-items"),
-		      Field::Optional(json_t::object, "take-condition")
+		      Field::Optional(json_t::object, "take-condition"),
+		      Field::Optional(json_t::object, "interactions")
 		      );
 
       normalizeDescription(value["description"], nestedPath);
       normalizeInspect(value["inspect"], nestedPath);
-
+      normalizeInteractions(value["interactions"], nestedPath);
       normalizeArray(json_t::string, value["nouns"], "nouns", nestedPath);
       normalizeArray(json_t::string, value["adjectives"], "adjectives", nestedPath);
       normalizeCondition(value["take-condition"], "take", nestedPath);
@@ -305,7 +340,8 @@ namespace {
 		      Field::Optional(json_t::object, "state"),
 		      Field::Optional(json_t::object, "items"),
 		      Field::Optional(json_t::array,  "nouns"),
-		      Field::Optional(json_t::object, "common-items")
+		      Field::Optional(json_t::object, "common-items"),
+		      Field::Optional(json_t::object, "interactions")
 		      );
 
       normalizeDescription(value["description"], nestedPath);
@@ -313,6 +349,7 @@ namespace {
       normalizeItems(value["items"], nestedPath);
       normalizeArray(json_t::string, value["nouns"], "nouns", nestedPath);
       normalizeCommonItemReferences(value["common-items"], nestedPath);
+      normalizeInteractions(value["interactions"], nestedPath);
       setPath(value, nestedPath);
       Global::g_objectManager.addProxy(key, value, ObjectType::Location);
     }
@@ -330,7 +367,7 @@ namespace {
     normalizeConnections(obj["connections"], path);
     
     Global::g_objectManager.setConnections(obj["connections"]);
-    Global::g_objectManager.setStart(obj["start"]);
+    Global::g_objectManager.setStart(obj["start"], path);
   }
 
   void initDictionary(json &obj, std::string const &) {
@@ -351,6 +388,8 @@ namespace {
     path.replace_filename(file);
     json data = parseEntireFile(path);
     func(data, path);
+
+    //    std::cout << data.dump(2) << '\n';
   }
 } // unnamed namespace 
 
@@ -363,5 +402,6 @@ void Game::load(std::string const &rootFilename) {
   process(processLocationsFile, root, rootPath, "locations");
   process(processWorldFile, root, rootPath, "world");
   process(initDictionary, root, rootPath, "dictionary");
-  Global::g_objectManager.build();
+  Global::g_objectManager.init();
+
 }

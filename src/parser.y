@@ -19,14 +19,15 @@
   void setResult(std::unique_ptr<Action>&&);
 }
 
-%token MOVE TAKE DROP INV INSPECT SAVE LOAD 
-%token FROM
+%token MOVE TAKE DROP INV INSPECT USE SAVE LOAD 
+%token FROM TO WITH
 %token <std::string> DIRECTION
 %token <std::string> VERB NOUN ADJECTIVE UNKNOWN
 %token ARTICLE
 %token END
 
 %type <ItemDescriptor>          object
+%type <std::string>             verb
 %type <ItemDescriptor>          object_without_article
 %type <std::string>             modifier
 %type <Direction>               direction
@@ -35,6 +36,7 @@
 %type <std::unique_ptr<Action>> take_command
 %type <std::unique_ptr<Action>> drop_command
 %type <std::unique_ptr<Action>> inspect_command
+%type <std::unique_ptr<Action>> interact_command
 
 %start input
 
@@ -50,6 +52,7 @@ command:
   | drop_command	{ $$ = std::move($1); }
   | inspect_command     { $$ = std::move($1); }
   | inventory_command	{ $$ = std::make_unique<ShowInventory>(); }
+  | interact_command    { $$ = std::move($1); }
   | SAVE                { $$ = std::make_unique<Save>(); }
   | LOAD                { $$ = std::make_unique<Load>(); }
 ;
@@ -68,6 +71,12 @@ drop_command:
     DROP object { $$ = std::make_unique<Drop>($2); }
 ;
 
+/*
+put_command:
+    PUT object IN object
+;
+*/
+
 inventory_command:
     INV
   | INSPECT INV
@@ -77,13 +86,26 @@ inspect_command:
     INSPECT object { $$ = std::make_unique<Inspect>($2); }
 ;
 
+interact_command:
+    verb                      { $$ = std::make_unique<Interact>($1); }
+  | verb object               { $$ = std::make_unique<Interact>($1, $2); }
+  | USE object TO verb        { $$ = std::make_unique<Interact>($4, $2); }
+  | verb object WITH object   { $$ = std::make_unique<Interact>($1, $2, $4); }
+  | USE object TO verb object { $$ = std::make_unique<Interact>($4, $5, $2); }
+;
+
 direction:
   DIRECTION { $$ = directionFromString($1); }
 ;
 
+verb:
+    VERB      { $$ = $1; }
+  | UNKNOWN   { $$ = $1; }
+;
+
 object:
-    object_without_article { $$ = $1; }
-  | ARTICLE object { $$ = $2; }
+    object_without_article         { $$ = $1; }
+  | ARTICLE object_without_article { $$ = $2; }
 ;
 
 object_without_article:

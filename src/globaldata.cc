@@ -4,6 +4,7 @@
 #include "item.h"
 #include "location.h"
 #include "condition.h"
+#include "interaction.h"
 
 namespace Global {
   ObjectManager g_objectManager;

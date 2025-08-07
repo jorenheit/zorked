@@ -17,21 +17,19 @@ using json = nlohmann::json;
 void Game::play() {
   Parser parser(Global::g_dict);
   Player *player = Global::g_objectManager.player();
-    
   while (true) {
     Location *current = player->getLocation();
 
     std::cout << current->label() << '\n';
     if (!current->visited()) {
       std::cout << current->description() << " ";
+      for (Item const *item: current->items()) {
+	if (item->common()) continue;
+	std::cout << item->description() << " ";
+      }
+      std::cout << '\n';
     }
     current->visit();
-
-    for (Item const *item: current->items()) {
-      if (item->common()) continue;
-      std::cout << item->description() << " ";
-    }
-    std::cout << '\n';
 
     std::string input;
     std::getline(std::cin, input);

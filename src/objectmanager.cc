@@ -5,9 +5,27 @@
 #include "exception.h"
 #include "location.h"
 #include "condition.h"
+#include "interaction.h"
 #include "player.h"
 #include "item.h"
 
+namespace Impl {
+  std::vector<std::string> getItemIDs(nlohmann::json const &obj) {
+    std::vector<std::string> result;
+    for (auto const &[key, _]: obj.at("items").items()) {
+      if (key == "_path") continue; // TODO: factor out _path
+      result.push_back(key);
+    }
+
+    for (auto const &[key, value]: obj.at("common-items").items()) {
+      if (key == "_path") continue; // TODO: factor out _path
+      for (size_t idx = 0; idx != value.get<size_t>(); ++idx) {
+	result.push_back(key);
+      }
+    }
+    return result;
+  }
+}
 // TODO: better assertions
 
 ObjectPointer::ObjectPointer(std::nullptr_t):
@@ -29,17 +47,12 @@ ObjectPointer::ObjectPointer(ObjectManagerBase *manager, size_t index):
 {}
 
 ObjectPointer::operator bool() const {
-  return _manager != nullptr || _obj != nullptr;
+  return _obj || _manager;
 }
 
 // TODO: rewrite in terms of getPointer instead of getReference
 ZObject &ObjectPointer::operator*() {
-  assert((_manager || _obj) && "Dereferencing null");
-  if (_obj) return *_obj;
-  
-  ZObject &obj =  _manager->getReference(_index);
-  _obj = &obj;
-  return obj;
+  return *(this->operator->());
 }
   
 ZObject const &ObjectPointer::operator*() const {
@@ -47,15 +60,20 @@ ZObject const &ObjectPointer::operator*() const {
 }
 
 ZObject *ObjectPointer::operator->() {
-  return &(this->operator*());
+  assert((_obj || _manager) && "Dereferencing null-pointer");
+  if (_obj) return _obj;
+  _obj = _manager->getRawPointer(_index);
+  return _obj;
 }
 
 ZObject const *ObjectPointer::operator->() const {
-  return &(this->operator*());
+  return const_cast<ObjectPointer*>(this)->operator->();
 }
 
 bool ObjectPointer::operator==(ObjectPointer const &other) const {
-  return (_obj == other._obj) || (_manager == other._manager && _index == other._index);
+  if (*this && other) return this->get() == other.get();
+  if (!*this && !other) return true;
+  return false;
 }
 
 bool ObjectPointer::operator!=(ObjectPointer const &other) const {
@@ -63,30 +81,25 @@ bool ObjectPointer::operator!=(ObjectPointer const &other) const {
 }
 
 void ObjectManager::setPlayer(nlohmann::json const &obj) {
-  assert(!_initialized);
-  if (obj.is_null()) assert(false);
+  assert(!_initialized && "called setPlayer() after init()");
   assert(obj.is_object());
 
+  std::vector<std::string> itemIDs = Impl::getItemIDs(obj);
   _playerData = obj;
-  std::vector<std::string> itemIDs;
-  for (auto const &[key, _]: obj["items"].items()) {
-    if (key == "_path") continue; // TODO: factor out _path
-    itemIDs.push_back(key);
-  }
   _playerData["items"] = itemIDs;
 }
-void ObjectManager::setStart(std::string const &startLocation){
-  assert(!_initialized);
-  _startLocation = startLocation;
+void ObjectManager::setStart(std::string const &startLocation, std::string const &path){
+  assert(!_initialized && "called setStart() after init()");
+  _startLocation = {startLocation, path};
 }
 
 Player *ObjectManager::player() {
-  assert(_player != nullptr);
+  assert(_initialized && "called player() before init()");
   return _player.get();
 }
 
 ObjectPointer ObjectManager::addProxy(std::string const &id, nlohmann::json const &obj, ObjectType type) {
-  assert(!_initialized);
+  assert(!_initialized && "called addProxy() after init()");
   switch (type) {
   case ObjectType::Location:   return _locationManager.addProxy(id, obj);
   case ObjectType::LocalItem:  return _localItemManager.addProxy(id, obj);
@@ -98,9 +111,7 @@ ObjectPointer ObjectManager::addProxy(std::string const &id, nlohmann::json cons
 
 
 void ObjectManager::setConnections(nlohmann::json const &obj) {
-  assert(!_initialized);
-  if (obj.is_null()) assert(false);
-  assert(obj.is_array());
+  assert(!_initialized && "called setConnections() after init()");
   _connections = obj;
 }
 
@@ -164,14 +175,18 @@ namespace {
   }
 }
 
-void ObjectManager::build() {
+void ObjectManager::init() {
   assert(not _playerData.is_null());
   assert(not _connections.is_null());
-  assert(not _startLocation.empty());
+  assert(not _startLocation.first.empty());
   assert(not _initialized);
 
   _player = Player::construct(_playerData);
-  _player->setLocation(this->get(_startLocation, ObjectType::Location).get<Location*>());
+  ObjectPointer start = this->get(_startLocation.first, ObjectType::Location);
+  if (not start) {
+    throw Exception::UndefinedReference(_startLocation.second, _startLocation.first);
+  }
+  _player->setLocation(start.get<Location*>());
   connectLocations(this, _connections);
   
   _initialized = true;

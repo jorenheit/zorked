@@ -9,6 +9,7 @@
 
 class Condition;
 class Item;
+class Interaction;
 
 class ZObject {
   std::string _id;
@@ -16,6 +17,7 @@ class ZObject {
   std::vector<std::string> _nouns;
   std::unique_ptr<Condition> _loreCondition;
   std::unique_ptr<Condition> _inspectCondition;
+  std::vector<std::unique_ptr<Interaction>> _interactions;
   
   std::vector<Item*> _items;
   std::unordered_map<std::string, bool> _state;
@@ -26,21 +28,23 @@ public:
 	  std::vector<Item*> const &items,
 	  std::unordered_map<std::string, bool> const &state,
 	  std::unique_ptr<Condition> loreCondition,
-	  std::unique_ptr<Condition> inspectCondition);
+	  std::unique_ptr<Condition> inspectCondition,
+	  std::vector<std::unique_ptr<Interaction>> &interactions);
   
   std::string const &id() const;
   std::string const &label() const;
   std::string const &description() const;
   std::vector<std::string> const &nouns() const;
-
+  std::vector<std::unique_ptr<Interaction>> const &interactions() const;
+  
   std::vector<Item*> const &items() const;
   std::unordered_map<std::string, bool> const &state() const;
 
   std::string inspect();
   
   void addItem(Item *item);
-  bool removeItem(Item *item);
-  size_t contains(Item *item) const; 
+  bool removeItem(Item const *item);
+  size_t contains(Item const *item) const; 
   bool getState(std::string const &stateStr) const;
   void setState(std::string const &stateStr, bool value);
 

@@ -89,8 +89,8 @@ std::unique_ptr<Condition> Condition::construct(json const &obj, std::string pat
   // 1. A key/value pair 
   // 2. A logical expression composed of an operator and multiple other nodes
 
-  auto fail    = path.empty() ? obj.at("fail").get<std::string>() : "";
-  auto success = path.empty() ? obj.at("success").get<std::string>() : "";
+  auto success = path.empty() ? obj.at("+").get<std::string>() : "";
+  auto fail    = path.empty() ? obj.at("-").get<std::string>() : "";
 
   if (path.empty())
     path = obj.at("_path").get<std::string>();
@@ -98,15 +98,15 @@ std::unique_ptr<Condition> Condition::construct(json const &obj, std::string pat
   std::vector<std::unique_ptr<Condition>> result;
   for (auto const &[key, value]: obj.items()) {
     if (key == "_path") continue;
-    if (key == "fail") continue;
-    if (key == "success") continue;
+    if (key == "+") continue;
+    if (key == "-") continue;
 
-
+    std::string currentPath = path + "::" + key;
     LogicType op = logicOperatorFromString(key);
     if (op != NumOp) {
       std::vector<std::unique_ptr<Condition>> array;
       for (json const &childNode: value) {
-	array.emplace_back(Condition::construct(childNode, path + "::" + key));
+	array.emplace_back(Condition::construct(childNode, currentPath));
       }
       result.emplace_back(std::make_unique<Condition>(op, std::move(array)));
       continue;
@@ -114,25 +114,31 @@ std::unique_ptr<Condition> Condition::construct(json const &obj, std::string pat
 
     // We need to parse the key-string to find the condition
     std::vector<std::string> vec = split(key, '.');
-    if (vec.size() != 3) {
-      throw Exception::SpecificFormatError(path,
-					   "Conditional expression must be of the form '[object].[is/has].[state/object]'.");
-    }
-
     ObjectPointer zObj = Global::g_objectManager.get(vec[0]);
     if (not zObj) {
-      throw Exception::UndefinedReference(path, vec[0]);
+      throw Exception::UndefinedReference(currentPath, vec[0]);
     }
-      
+    if (vec.size() < 3) {
+      throw Exception::SpecificFormatError(currentPath, "Invalid conditional expression.");
+    }
+    
     if (vec[1] == "is") {
+      if (vec.size() != 3) {
+	throw Exception::SpecificFormatError(currentPath, "Conditional 'is'-expression must be of the form '[object].is.[state]'.");
+      }
       if (!value.is_boolean()) {
-	throw Exception::InvalidFieldType(path, key, "boolean", value.type_name());
+	throw Exception::InvalidFieldType(currentPath, key, "boolean", value.type_name());
       }
       result.emplace_back(std::make_unique<Condition>(zObj, vec[2], value.get<bool>()));
       continue;
     }
 
     if (vec[1] == "has") {
+      if (vec.size() != 3 && vec.size() != 4) {
+	throw Exception::SpecificFormatError(currentPath, "Conditional 'has'-expression must be of the form "
+					     "'[object].has.[object]' or '[object].has.[object].[=,<,>,<=,>=]'.");
+      }
+      
       ObjectPointer zObj2 = Global::g_objectManager.get(vec[2], ObjectType::LocalItem, ObjectType::CommonItem);
       if (!zObj2) {
 	throw Exception::UndefinedReference(path, vec[2]);
@@ -144,30 +150,22 @@ std::unique_ptr<Condition> Condition::construct(json const &obj, std::string pat
       }
 
       if (value.is_number()) {
-	result.emplace_back(std::make_unique<Condition>(GreaterOrEqual, zObj, zObj2, value.get<size_t>()));
+	ComparisonType comp = (vec.size() == 3)
+	  ? GreaterOrEqual
+	  : comparisonOperatorFromString(vec[3]);
+
+	if (comp == NumComp) {
+	  throw Exception::SpecificFormatError(currentPath, "Invalid comparison operator '", vec[3], "'; must be one of {=,<,>,<=,>=,!=}.");
+	}
+	
+	result.emplace_back(std::make_unique<Condition>(comp, zObj, zObj2, value.get<size_t>()));
 	continue;
       }
       
-      if (value.is_object()) {
-	auto count = value.at("value").get<size_t>();
-	auto compStr = value.at("comparison").get<std::string>();
-	ComparisonType comp = comparisonOperatorFromString(compStr);
-	  
-	if (comp == NumComp) {
-	  throw Exception::SpecificFormatError(path, 
-					       "Invalid comparison operator '", compStr, "'; must be one of {=,<,>,<=,>=,!=}.");
-	}
-	result.emplace_back(std::make_unique<Condition>(comp, zObj, zObj2, count));
-	continue;
-      }
-
-      throw Exception::SpecificFormatError(path,
-					   "Value of condition '", key, "' must be either boolean, integer or "
-					   "an object containing a 'value' and 'comparison' field.");
+      throw Exception::SpecificFormatError(currentPath, "Value of condition '", key, "' must be either boolean or integer.");
     }
 
-    throw Exception::SpecificFormatError(value.at("_path"),
-					 "Condition may only contain 'is' or 'has', got '", vec[1], "'.");
+    throw Exception::SpecificFormatError(currentPath, "Condition may only contain 'is' or 'has', got '", vec[1], "'.");
   }
 
   return result.empty()

@@ -23,5 +23,8 @@
 	    "weight": 0.0,
 	    "inspect": "You open up the note. It says: \"You need to clean the house today. Do it this time or else!\""
 	}
+    },
+    "common-items": {
+	"coin": 4
     }
 }
