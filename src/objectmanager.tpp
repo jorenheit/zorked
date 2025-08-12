@@ -4,7 +4,6 @@ template <typename T>
 ObjectPointer ObjectManager_<T>::addProxy(std::string const &id, nlohmann::json const &obj){
   assert(not _initialized && "Calling 'add' after 'constructAll'");
 
-  if (id == "player") std::cout << "ADD PLAYER PROXY\n";
   // Replace items by their keys, then add to list of proxies
   std::vector<std::string> itemIDs = Impl::getItemIDs(obj);
   nlohmann::json proxy = obj;
@@ -22,6 +21,11 @@ ObjectPointer ObjectManager_<T>::getPointer(std::string const &id) {
     }
   }
   return nullptr;
+}
+
+template <typename T>
+ObjectPointer ObjectManager_<T>::getPointer(size_t idx) {
+  return idx < _objects.size() ? ObjectPointer{this, idx} : nullptr;
 }
 
 template <typename T>

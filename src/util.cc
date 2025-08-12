@@ -38,4 +38,12 @@ std::vector<std::string> split(std::string const &str, std::string const &token,
   return result;
 }
 
+std::string ObjectDescriptor::str(bool includeNumber) const {
+  std::string result = (includeNumber && number > 1) ? (std::to_string(number) + " ") : "";
+  for (std::string const &adj: adjectives) {
+    result += (adj + " ");
+  }
+  result += noun;
+  return result;
+}
 

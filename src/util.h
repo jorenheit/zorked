@@ -46,9 +46,18 @@ std::string transformString(std::string const &input) {
 }
 
 inline std::string normalizeString(std::string str) {
+  // TODO: replace dash with space
   using enum StringTransform;
   str = trim(str);
   return transformString<ToLower, NormalizeSpaces, RemovePunctuation>(str);
 }
+
+struct ObjectDescriptor {
+  std::string noun;
+  std::vector<std::string> adjectives;
+  size_t number = 1;
+  std::string str(bool includeNumber = false) const;
+};
+
 
 #endif // UTIL_H

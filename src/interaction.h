@@ -21,6 +21,7 @@ class Interaction {
   
 public:
   Interaction() = default;
+  // TODO: verbs as first arg, then tool
   Interaction(Item *tool,
 	      std::vector<std::string> const &verbs,
 	      std::unique_ptr<Condition> &&condition,
@@ -35,7 +36,8 @@ public:
   inline std::vector<std::unique_ptr<Effect>> const &failEffects() const { return _failEffects; }
   inline std::vector<std::unique_ptr<Effect>> const &effects(bool result) const { return result ? _successEffects : _failEffects; }
   
-
+  bool match(std::string const &verb, Item const *tool) const;
+  
   static std::unique_ptr<Interaction> construct(std::string const &key, nlohmann::json const &obj);
 };
 

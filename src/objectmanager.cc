@@ -8,6 +8,7 @@
 #include "interaction.h"
 #include "player.h"
 #include "item.h"
+#include "game.h"
 
 namespace Impl {
   std::vector<std::string> getItemIDs(nlohmann::json const &obj) {
@@ -188,6 +189,10 @@ void ObjectManager::init() {
   }
   _player->setLocation(start.get<Location*>());
   connectLocations(this, _connections);
+
+  _locationManager.constructAll();
+  _localItemManager.constructAll();
+  _commonItemManager.constructAll();
   
   _initialized = true;
 }

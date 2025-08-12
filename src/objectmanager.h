@@ -83,9 +83,12 @@ class ObjectManager_: public ObjectManagerBase {
     
 public:
   ObjectPointer addProxy(std::string const &id, nlohmann::json const &obj);
+  
   ObjectPointer getPointer(std::string const &id);
+  ObjectPointer getPointer(size_t idx);
   void construct(size_t index);
   void constructAll();
+  inline size_t size() const { return _objects.size(); }
   
 private:
   virtual ZObject *getRawPointer(size_t index) override;

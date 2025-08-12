@@ -15,6 +15,7 @@
 }
 
 %code {
+  #include "util.h"
   yy::ParserBase::symbol_type yylex();
   void setResult(std::unique_ptr<Action>&&);
 }
@@ -23,12 +24,15 @@
 %token FROM TO WITH
 %token <std::string> DIRECTION
 %token <std::string> UNKNOWN
-%token ARTICLE
+%token <size_t> NUMBER
+%token THE A AN ALL
 %token END
 
 %type <ObjectDescriptor>        object
 %type <std::string>             verb
 %type <ObjectDescriptor>        object_without_article
+%type <ObjectDescriptor>        object_with_article
+%type <ObjectDescriptor>       	multiple_objects
 %type <std::string>             adjective
 %type <Direction>               direction
 %type <std::unique_ptr<Action>> command
@@ -71,7 +75,7 @@ drop_command:
     DROP object { $$ = std::make_unique<Drop>($2); }
 ;
 
-/*
+/* TODO
 put_command:
     PUT object IN object
 ;
@@ -103,9 +107,33 @@ verb:
 ;
 
 object:
-    object_without_article         { $$ = $1; }
-  | ARTICLE object_without_article { $$ = $2; }
+    object_without_article  { $$ = $1; }
+  | object_with_article     { $$ = $1; }
+  | multiple_objects        { $$ = $1; }
 ;
+
+multiple_objects:
+    NUMBER object_without_article {
+      $$ = $2;
+      $$.number = $1;
+    }
+  | article NUMBER object_without_article {
+      $$ = $3;
+      $$.number = $2;
+    }
+  | ALL object_without_article {
+      $$ = $2;
+      $$.number = 0;
+    }
+  | ALL THE object_without_article {
+      $$ = $3;
+      $$.number = 0;
+    }
+;
+
+object_with_article:
+    article object_without_article { $$ = $2; }
+;    
 
 object_without_article:
     UNKNOWN { $$.noun = $1; }
@@ -118,3 +146,6 @@ object_without_article:
 adjective:
     UNKNOWN    { $$ = $1; }
 ;
+
+article: THE | A | AN;
+

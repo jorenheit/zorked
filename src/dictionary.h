@@ -10,8 +10,10 @@ enum class WordType {
   Unknown,
   BuiltinCommand,
   Phrase,
+  Noun,
   Direction,
   Number,
+  IrregularPlural,
   Preposition,
   Article
 };
@@ -32,14 +34,18 @@ public:
 
 private:
   std::map<std::string, Entry> _dict;
+  std::map<std::string, std::string> _plurals;
+  std::map<std::string, std::string> _singulars;
   
 public:
   Dictionary() = default;
   Dictionary(nlohmann::json const &obj);  
   Entry operator[](std::string const &word) const;
   std::vector<Entry> tokenize(std::string input, size_t const ngramSize) const;
+  void addNoun(std::string const &noun);
   void addPhrase(std::string const &phrase);
-  
+  std::string pluralize(std::string const &singular) const;
+  std::string singularize(std::string const &plural) const;
 };
 
 inline std::ostream &operator<<(std::ostream &out, Dictionary::Entry const &entry) {

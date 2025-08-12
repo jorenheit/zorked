@@ -12,15 +12,6 @@
 using json = nlohmann::json;
 
 
-std::string ObjectDescriptor::str() const {
-  std::string result;
-  for (std::string const &adj: adjectives) {
-    result += (adj + " ");
-  }
-  result += noun;
-  return result;
-}
-
 std::unique_ptr<ZObject> ZObject::construct(std::string const &id, json const &obj) {
   auto label = obj.at("label").get<std::string>();
   auto nouns = obj.at("nouns").get<std::vector<std::string>>();
@@ -142,15 +133,23 @@ void ZObject::setState(std::string const &stateStr, bool value) {
 }
 
 
-bool ZObject::match(ObjectDescriptor const &descr) const {
+bool ZObject::match(ObjectDescriptor const &descr, bool secondTry) const {
   bool nounMatch = false;
   for (std::string const &noun: this->nouns()) {
-    if (noun == descr.noun) {
+    if (descr.noun == noun) {
       nounMatch = true;
       break;
     }
   }
-  if (not nounMatch) return false;
+  if (not nounMatch) {
+    if (not secondTry) {
+      // Noun didn't match, but maybe the player used the plural form?
+      ObjectDescriptor tmp = descr;
+      tmp.noun = Global::g_dict.singularize(tmp.noun);
+      return match(tmp, true);
+    }
+    else return false;
+  }
   
   for (std::string const &adj: descr.adjectives) {
     bool adjMatch = false;

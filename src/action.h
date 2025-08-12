@@ -13,17 +13,17 @@ class Player;
 
 struct Action {
   virtual ~Action() = default;
-  virtual std::string exec() const = 0;
+  virtual std::string exec() = 0;
 };
 
 struct Nop: public Action {
-  virtual std::string exec() const override;
+  virtual std::string exec() override;
 };
 
 struct Move: public Action {
   Direction _dir = NumDir;
   inline Move(Direction dir): _dir(dir) {}
-  virtual std::string exec() const override;
+  virtual std::string exec() override;
 };
 
 
@@ -34,14 +34,14 @@ struct Take: public Action {
   inline Take(ObjectDescriptor const &object, ObjectDescriptor const &prepObject = {}):
     _object(object), _prepObject(prepObject)
   {}
-  virtual std::string exec() const override;
+  virtual std::string exec() override;
 };
 
 struct Drop: public Action {
   ObjectDescriptor _object;
   
   inline Drop(ObjectDescriptor const &object): _object(object) {}
-  virtual std::string exec() const override;
+  virtual std::string exec() override;
 };
 
 // TODO: insert action (PUT X in Y -> opposite to TAKE X from Y)
@@ -52,11 +52,11 @@ struct Inspect: public Action {
   ObjectDescriptor _object;
   
   inline Inspect(ObjectDescriptor const &object): _object(object) {}
-  virtual std::string exec() const override;
+  virtual std::string exec() override;
 };
 
 struct ShowInventory: public Action {
-  virtual std::string exec() const override;
+  virtual std::string exec() override;
 };
 
 struct Interact: public Action {
@@ -73,16 +73,16 @@ struct Interact: public Action {
     _tool(tool)
   {}
   
-  virtual std::string exec() const override;
+  virtual std::string exec() override;
 };
 
 struct Save: public Action {
-  virtual std::string exec() const override;
+  virtual std::string exec() override;
 
 };
 
 struct Load: public Action {
-  virtual std::string exec() const override;
+  virtual std::string exec() override;
 };
 
 #endif // ACTION_H

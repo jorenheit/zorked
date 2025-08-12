@@ -388,14 +388,19 @@ namespace yy {
       char dummy1[sizeof (Direction)];
 
       // object
+      // multiple_objects
+      // object_with_article
       // object_without_article
       char dummy2[sizeof (ObjectDescriptor)];
+
+      // NUMBER
+      char dummy3[sizeof (size_t)];
 
       // DIRECTION
       // UNKNOWN
       // verb
       // adjective
-      char dummy3[sizeof (std::string)];
+      char dummy4[sizeof (std::string)];
 
       // command
       // move_command
@@ -403,7 +408,7 @@ namespace yy {
       // drop_command
       // inspect_command
       // interact_command
-      char dummy4[sizeof (std::unique_ptr<Action>)];
+      char dummy5[sizeof (std::unique_ptr<Action>)];
     };
 
     /// The size of the largest semantic type.
@@ -460,8 +465,12 @@ namespace yy {
     WITH = 268,                    // WITH
     DIRECTION = 269,               // DIRECTION
     UNKNOWN = 270,                 // UNKNOWN
-    ARTICLE = 271,                 // ARTICLE
-    END = 272                      // END
+    NUMBER = 271,                  // NUMBER
+    THE = 272,                     // THE
+    A = 273,                       // A
+    AN = 274,                      // AN
+    ALL = 275,                     // ALL
+    END = 276                      // END
       };
       /// Backward compatibility alias (Bison 3.6).
       typedef token_kind_type yytokentype;
@@ -478,7 +487,7 @@ namespace yy {
     {
       enum symbol_kind_type
       {
-        YYNTOKENS = 18, ///< Number of tokens.
+        YYNTOKENS = 22, ///< Number of tokens.
         S_YYEMPTY = -2,
         S_YYEOF = 0,                             // "end of file"
         S_YYerror = 1,                           // error
@@ -496,22 +505,29 @@ namespace yy {
         S_WITH = 13,                             // WITH
         S_DIRECTION = 14,                        // DIRECTION
         S_UNKNOWN = 15,                          // UNKNOWN
-        S_ARTICLE = 16,                          // ARTICLE
-        S_END = 17,                              // END
-        S_YYACCEPT = 18,                         // $accept
-        S_input = 19,                            // input
-        S_command = 20,                          // command
-        S_move_command = 21,                     // move_command
-        S_take_command = 22,                     // take_command
-        S_drop_command = 23,                     // drop_command
-        S_inventory_command = 24,                // inventory_command
-        S_inspect_command = 25,                  // inspect_command
-        S_interact_command = 26,                 // interact_command
-        S_direction = 27,                        // direction
-        S_verb = 28,                             // verb
-        S_object = 29,                           // object
-        S_object_without_article = 30,           // object_without_article
-        S_adjective = 31                         // adjective
+        S_NUMBER = 16,                           // NUMBER
+        S_THE = 17,                              // THE
+        S_A = 18,                                // A
+        S_AN = 19,                               // AN
+        S_ALL = 20,                              // ALL
+        S_END = 21,                              // END
+        S_YYACCEPT = 22,                         // $accept
+        S_input = 23,                            // input
+        S_command = 24,                          // command
+        S_move_command = 25,                     // move_command
+        S_take_command = 26,                     // take_command
+        S_drop_command = 27,                     // drop_command
+        S_inventory_command = 28,                // inventory_command
+        S_inspect_command = 29,                  // inspect_command
+        S_interact_command = 30,                 // interact_command
+        S_direction = 31,                        // direction
+        S_verb = 32,                             // verb
+        S_object = 33,                           // object
+        S_multiple_objects = 34,                 // multiple_objects
+        S_object_with_article = 35,              // object_with_article
+        S_object_without_article = 36,           // object_without_article
+        S_adjective = 37,                        // adjective
+        S_article = 38                           // article
       };
     };
 
@@ -551,8 +567,14 @@ namespace yy {
         break;
 
       case symbol_kind::S_object: // object
+      case symbol_kind::S_multiple_objects: // multiple_objects
+      case symbol_kind::S_object_with_article: // object_with_article
       case symbol_kind::S_object_without_article: // object_without_article
         value.move< ObjectDescriptor > (std::move (that.value));
+        break;
+
+      case symbol_kind::S_NUMBER: // NUMBER
+        value.move< size_t > (std::move (that.value));
         break;
 
       case symbol_kind::S_DIRECTION: // DIRECTION
@@ -617,6 +639,18 @@ namespace yy {
 #endif
 
 #if 201103L <= YY_CPLUSPLUS
+      basic_symbol (typename Base::kind_type t, size_t&& v)
+        : Base (t)
+        , value (std::move (v))
+      {}
+#else
+      basic_symbol (typename Base::kind_type t, const size_t& v)
+        : Base (t)
+        , value (v)
+      {}
+#endif
+
+#if 201103L <= YY_CPLUSPLUS
       basic_symbol (typename Base::kind_type t, std::string&& v)
         : Base (t)
         , value (std::move (v))
@@ -669,8 +703,14 @@ switch (yykind)
         break;
 
       case symbol_kind::S_object: // object
+      case symbol_kind::S_multiple_objects: // multiple_objects
+      case symbol_kind::S_object_with_article: // object_with_article
       case symbol_kind::S_object_without_article: // object_without_article
         value.template destroy< ObjectDescriptor > ();
+        break;
+
+      case symbol_kind::S_NUMBER: // NUMBER
+        value.template destroy< size_t > ();
         break;
 
       case symbol_kind::S_DIRECTION: // DIRECTION
@@ -783,6 +823,14 @@ switch (yykind)
 #else
       symbol_type (int tok)
         : super_type (token_kind_type (tok))
+#endif
+      {}
+#if 201103L <= YY_CPLUSPLUS
+      symbol_type (int tok, size_t v)
+        : super_type (token_kind_type (tok), std::move (v))
+#else
+      symbol_type (int tok, const size_t& v)
+        : super_type (token_kind_type (tok), v)
 #endif
       {}
 #if 201103L <= YY_CPLUSPLUS
@@ -1086,16 +1134,76 @@ switch (yykind)
 #if 201103L <= YY_CPLUSPLUS
       static
       symbol_type
-      make_ARTICLE ()
+      make_NUMBER (size_t v)
       {
-        return symbol_type (token::ARTICLE);
+        return symbol_type (token::NUMBER, std::move (v));
       }
 #else
       static
       symbol_type
-      make_ARTICLE ()
+      make_NUMBER (const size_t& v)
       {
-        return symbol_type (token::ARTICLE);
+        return symbol_type (token::NUMBER, v);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_THE ()
+      {
+        return symbol_type (token::THE);
+      }
+#else
+      static
+      symbol_type
+      make_THE ()
+      {
+        return symbol_type (token::THE);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_A ()
+      {
+        return symbol_type (token::A);
+      }
+#else
+      static
+      symbol_type
+      make_A ()
+      {
+        return symbol_type (token::A);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_AN ()
+      {
+        return symbol_type (token::AN);
+      }
+#else
+      static
+      symbol_type
+      make_AN ()
+      {
+        return symbol_type (token::AN);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_ALL ()
+      {
+        return symbol_type (token::ALL);
+      }
+#else
+      static
+      symbol_type
+      make_ALL ()
+      {
+        return symbol_type (token::ALL);
       }
 #endif
 #if 201103L <= YY_CPLUSPLUS
@@ -1190,7 +1298,7 @@ switch (yykind)
 
 #if YYDEBUG
     // YYRLINE[YYN] -- Source line where rule number YYN was defined.
-    static const signed char yyrline_[];
+    static const unsigned char yyrline_[];
     /// Report on the debug stream that the rule \a r is going to be reduced.
     virtual void yy_reduce_print_ (int r) const;
     /// Print the state stack on the debug stream.
@@ -1417,9 +1525,9 @@ switch (yykind)
     /// Constants.
     enum
     {
-      yylast_ = 38,     ///< Last index in yytable_.
-      yynnts_ = 14,  ///< Number of nonterminal symbols.
-      yyfinal_ = 32 ///< Termination state number.
+      yylast_ = 64,     ///< Last index in yytable_.
+      yynnts_ = 17,  ///< Number of nonterminal symbols.
+      yyfinal_ = 39 ///< Termination state number.
     };
 
 
@@ -1463,10 +1571,10 @@ switch (yykind)
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
        5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
-      15,    16,    17
+      15,    16,    17,    18,    19,    20,    21
     };
     // Last valid token kind.
-    const int code_max = 272;
+    const int code_max = 276;
 
     if (t <= 0)
       return symbol_kind::S_YYEOF;
@@ -1489,8 +1597,14 @@ switch (yykind)
         break;
 
       case symbol_kind::S_object: // object
+      case symbol_kind::S_multiple_objects: // multiple_objects
+      case symbol_kind::S_object_with_article: // object_with_article
       case symbol_kind::S_object_without_article: // object_without_article
         value.copy< ObjectDescriptor > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_NUMBER: // NUMBER
+        value.copy< size_t > (YY_MOVE (that.value));
         break;
 
       case symbol_kind::S_DIRECTION: // DIRECTION
@@ -1545,8 +1659,14 @@ switch (yykind)
         break;
 
       case symbol_kind::S_object: // object
+      case symbol_kind::S_multiple_objects: // multiple_objects
+      case symbol_kind::S_object_with_article: // object_with_article
       case symbol_kind::S_object_without_article: // object_without_article
         value.move< ObjectDescriptor > (YY_MOVE (s.value));
+        break;
+
+      case symbol_kind::S_NUMBER: // NUMBER
+        value.move< size_t > (YY_MOVE (s.value));
         break;
 
       case symbol_kind::S_DIRECTION: // DIRECTION
@@ -1630,7 +1750,7 @@ switch (yykind)
 
 
 } // yy
-#line 1634 "parserbase.h"
+#line 1754 "parserbase.h"
 
 
 

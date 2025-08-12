@@ -71,8 +71,12 @@ namespace {
     // that matches these compound expressions (that do not contain adjectives).
 
     for (std::string const &word: wordList) {
-      if (word.find(' ') == std::string::npos) continue;
-      Global::g_dict.addPhrase(word);
+      if (word.find(' ') == std::string::npos) {
+	Global::g_dict.addNoun(word);
+      }
+      else {
+	Global::g_dict.addPhrase(word);
+      }
     }
   }
 
@@ -432,5 +436,4 @@ void Game::load(std::string const &rootFilename) {
   process(processLocationsFile, root, rootPath, "locations");
   process(processWorldFile, root, rootPath, "world");
   Global::g_objectManager.init();
-
 }

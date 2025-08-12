@@ -15,6 +15,7 @@ class Item: public ZObject {
   bool _portable;
   double _weight;
   std::shared_ptr<Condition> _takeCondition;
+  bool _dropped = false;
 
 public:
   Item(ZObject &&parent, bool common, bool portable, double weight, std::shared_ptr<Condition> cond);
@@ -22,9 +23,9 @@ public:
   bool common() const;
   bool portable() const;
   double weight() const;
-
-  std::pair<bool, std::string> checkTakeCondition() const;
-  void clearTakeCondition();
+  bool dropped() const;
+  
+  Condition *takeCondition() const;
 
   static std::unique_ptr<Item> construct(std::string const &id, nlohmann::json const &obj);
   

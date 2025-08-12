@@ -6,17 +6,13 @@
 #include <cassert>
 #include <unordered_map>
 #include "json_fwd.hpp"
+#include "util.h"
 
+class ObjectDescriptor;
 class Condition;
 class Item;
 class Interaction;
 
-
-struct ObjectDescriptor {
-  std::string noun;
-  std::vector<std::string> adjectives;
-  std::string str() const;
-};
 
 class ZObject {
   std::string _id;
@@ -39,6 +35,7 @@ public:
 	  std::unordered_map<std::string, bool> const &state,
 	  std::unique_ptr<Condition> loreCondition,
 	  std::unique_ptr<Condition> inspectCondition,
+	  // TODO: move interactions
 	  std::vector<std::unique_ptr<Interaction>> &interactions);
   
   std::string const &id() const;
@@ -53,7 +50,7 @@ public:
   std::unordered_map<std::string, bool> const &state() const;
 
   std::string inspect();
-  bool match(ObjectDescriptor const &descr) const;
+  bool match(ObjectDescriptor const &descr, bool secondTry = false) const;
   void addItem(Item *item);
   bool removeItem(Item const *item);
   size_t contains(Item const *item) const; 

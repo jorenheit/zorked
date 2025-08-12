@@ -62,3 +62,11 @@ std::unique_ptr<Interaction> Interaction::construct(std::string const &key, json
   
   return std::make_unique<Interaction>(tool, verbs, std::move(condition), std::move(success), std::move(fail));
 }
+
+bool Interaction::match(std::string const &verb, Item const *tool) const {
+  if (_tool != tool) return false;
+  for (std::string const &v: _verbs) {
+    if (v == verb) return true;
+  }
+  return false;
+}

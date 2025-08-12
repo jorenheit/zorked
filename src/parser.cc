@@ -43,17 +43,25 @@ ParserBase::symbol_type Parser::yylex() {
   
   Dictionary::Entry const &token = _tokens[_pos++];
   switch (token.type) {
-  case WordType::Phrase:
+  case WordType::Noun:
+  case WordType::Phrase:    
   case WordType::Unknown:		return ParserBase::make_UNKNOWN(token.str);
   case WordType::Direction:		return ParserBase::make_DIRECTION(token.str);
-  case WordType::Number: assert(false && "todo: numbers"); 
+  case WordType::Number: {
+    if (token.str == "all")             return ParserBase::make_ALL();
+    else                                return ParserBase::make_NUMBER(std::stoi(token.str));
+  }
   case WordType::Preposition: {
     if (token.str == "from")		return ParserBase::make_FROM();
     if (token.str == "to")		return ParserBase::make_TO();
     if (token.str == "with")		return ParserBase::make_WITH();
     UNREACHABLE("unimplemented preposition");
   }
-  case WordType::Article:		return ParserBase::make_ARTICLE();
+  case WordType::Article: {
+    if (token.str == "the")             return ParserBase::make_THE();
+    if (token.str == "a")               return ParserBase::make_A();
+    if (token.str == "an")              return ParserBase::make_AN();
+  }
   case WordType::BuiltinCommand: {
     if (token.str == "move")		return ParserBase::make_MOVE();
     if (token.str == "take")		return ParserBase::make_TAKE();

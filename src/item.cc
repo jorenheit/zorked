@@ -39,14 +39,8 @@ double Item::weight() const {
   return _weight;
 }
 
-void Item::clearTakeCondition() {
-  _takeCondition->clear();
-}
-
-std::pair<bool, std::string> Item::checkTakeCondition() const {
-  return _takeCondition->eval() 
-    ? std::make_pair(true, _takeCondition->successString())
-    : std::make_pair(false, _takeCondition->failString());
+Condition *Item::takeCondition() const {
+  return _takeCondition.get();
 }
 
 void Item::to_json(json &obj) const {
